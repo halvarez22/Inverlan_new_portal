@@ -6,10 +6,10 @@ let chat: Chat | null = null;
 
 const initializeAi = () => {
     if (!ai) {
-        if (!process.env.API_KEY) {
-            throw new Error("API_KEY environment variable not set");
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("GEMINI_API_KEY environment variable not set");
         }
-        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     }
     return ai;
 }
