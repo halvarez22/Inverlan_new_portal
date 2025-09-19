@@ -24,11 +24,11 @@ const Hero: React.FC<HeroProps> = ({ onSearch, isSearching }) => {
     return (
         <section id="home" className="relative h-screen min-h-[500px] flex items-center justify-center text-white">
             <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
-            <img src="/images/portada.jpeg" alt="Portada Inverland" className="absolute inset-0 w-full h-full object-cover" />
+            <img src="./images/portada.jpeg" alt="Portada Inverland" className="absolute inset-0 w-full h-full object-cover" />
             
             <div className="relative z-20 text-center px-4 w-full">
                 <div className="mb-6">
-                    <img src="/images/logo.png" alt="Inverland" className="h-16 w-auto mx-auto drop-shadow-lg" />
+                    <img src="./images/logo.png" alt="Inverland" className="h-16 w-auto mx-auto drop-shadow-lg" />
                 </div>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-lg">La mejor elección inmobiliaria en México</h1>
                 <p className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 drop-shadow-md">Describe la propiedad de tus sueños y la encontraremos para ti.</p>

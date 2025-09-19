@@ -14,6 +14,16 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      publicDir: 'public',
+      assetsInclude: ['**/*.png', '**/*.jpg', '**/*.jpeg', '**/*.gif', '**/*.svg'],
+      build: {
+        assetsDir: 'assets',
+        rollupOptions: {
+          output: {
+            assetFileNames: 'assets/[name]-[hash][extname]'
+          }
+        }
       }
     };
 });

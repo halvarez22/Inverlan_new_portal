@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext';
 
 const Logo = () => (
     <div className="flex items-center">
-        <img src="/images/logo.png" alt="Inverland" className="h-10 w-auto" />
+        <img src="./images/logo.png" alt="Inverland" className="h-10 w-auto" />
     </div>
 );
 
