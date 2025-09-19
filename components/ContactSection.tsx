@@ -10,8 +10,8 @@ const ContactSection: React.FC = () => {
     });
 
     const officeLocation = {
-        lat: 21.1180,
-        lng: -101.6720,
+        lat: 21.145122051646986,
+        lng: -101.69159577495043,
         address: "Calle Nubes 219, Col. Jardines de Moral, 37160, León Gto. MX."
     };
 
