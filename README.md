@@ -1,72 +1,140 @@
-# Portal Inverland - Plataforma Digital
+# 🏢 Portal Inverland - Plataforma Digital
 
 <div align="center">
 <img width="1200" alt="Inverland Portal" src="https://github.com/halvarez22/inverland-new-portal/raw/main/images/logo.png" />
 </div>
 
-## Descripción
+## 📋 Descripción
 
-Portal digital para la gestión de propiedades y clientes de Grupo Inverland. Esta plataforma permite a los agentes inmobiliarios gestionar propiedades, clientes y realizar seguimientos de manera eficiente.
+Portal digital completo para la gestión de propiedades y clientes de Grupo Inverland. Esta plataforma permite a los agentes inmobiliarios gestionar propiedades, clientes y realizar seguimientos de manera eficiente con herramientas de IA integradas.
 
-## Características Principales
+## ✨ Características Principales
 
-- Gestión de propiedades
-- Seguimiento de clientes
-- Panel de administración
-- Herramientas de análisis
-- Integración con IA para recomendaciones
+- 🏠 **Gestión de Propiedades**: Catálogo completo con filtros avanzados
+- 👥 **Gestión de Clientes**: CRM integrado para seguimiento de leads
+- 👨‍💼 **Portal de Agentes**: Dashboard personalizado para agentes inmobiliarios
+- 📊 **Panel de Administración**: Herramientas de gestión y análisis
+- 🤖 **IA Integrada**: Recomendaciones inteligentes con Gemini AI
+- 📱 **Responsive Design**: Optimizado para móviles y tablets
+- 💬 **Chatbot**: Asistente virtual para consultas
+- 📞 **Integración WhatsApp**: Comunicación directa con clientes
 
-## Requisitos Previos
+## 🚀 Despliegue en Vercel
 
-- Node.js 16.x o superior
-- npm 8.x o superior
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/halvarez22/inverland-new-portal)
+
+### Configuración Automática
+
+1. **Conecta tu repositorio** a Vercel desde GitHub
+2. **Configura las variables de entorno**:
+   - `GEMINI_API_KEY`: Tu clave de API de Google Gemini
+3. **Despliega**: Vercel detectará automáticamente la configuración
+
+## 🛠️ Desarrollo Local
+
+### Requisitos Previos
+
+- Node.js 18.x o superior
+- npm 9.x o superior
 - Clave API de Gemini (para funcionalidades de IA)
 
-## Instalación
+### Instalación
 
-1. Clona el repositorio:
+1. **Clona el repositorio**:
    ```bash
    git clone https://github.com/halvarez22/inverland-new-portal.git
    cd inverland-new-portal
    ```
 
-2. Instala las dependencias:
+2. **Instala las dependencias**:
    ```bash
    npm install
    ```
 
-3. Configura las variables de entorno:
-   - Copia el archivo `.env.example` a `.env.local`
-   - Configura tu `GEMINI_API_KEY` en el archivo `.env.local`
+3. **Configura las variables de entorno**:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Edita `.env.local` y configura tu `GEMINI_API_KEY`
 
-## Desarrollo
+4. **Inicia el servidor de desarrollo**:
+   ```bash
+   npm run dev
+   ```
 
-Para iniciar el servidor de desarrollo:
+5. **Abre tu navegador** en `http://localhost:5173`
+
+## 📦 Scripts Disponibles
 
 ```bash
-npm run dev
+npm run dev      # Servidor de desarrollo
+npm run build    # Construcción para producción
+npm run preview  # Vista previa de la construcción
 ```
 
-## Construcción para Producción
+## 🏗️ Estructura del Proyecto
 
-Para crear una versión optimizada para producción:
-
-```bash
-npm run build
+```
+├── components/           # Componentes reutilizables de React
+│   ├── charts/          # Gráficos y visualizaciones
+│   ├── AuthContext.tsx  # Contexto de autenticación
+│   ├── PropertyContext.tsx # Contexto de propiedades
+│   └── ...
+├── services/            # Servicios y lógica de negocio
+│   └── geminiService.ts # Integración con IA
+├── modules/             # Módulos específicos de la aplicación
+│   ├── agent_portal/    # Portal de agentes
+│   ├── analytics/       # Herramientas de análisis
+│   ├── crm/            # Gestión de clientes
+│   └── ...
+├── images/             # Recursos gráficos
+├── types.ts           # Definiciones de TypeScript
+└── constants.ts       # Constantes de la aplicación
 ```
 
-## Despliegue
+## 🔧 Tecnologías Utilizadas
 
-Este proyecto está configurado para desplegarse en Vercel. Simplemente haz push a la rama `main` y Vercel se encargará del despliegue automático.
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling**: Tailwind CSS
+- **IA**: Google Gemini AI
+- **Despliegue**: Vercel
+- **Gestión de Estado**: React Context API
 
-## Estructura del Proyecto
+## 📱 Funcionalidades por Rol
 
-- `/components` - Componentes reutilizables de React
-- `/services` - Servicios y lógica de negocio
-- `/modules` - Módulos específicos de la aplicación
-- `/images` - Recursos gráficos
-- `/types` - Definiciones de TypeScript
+### 👤 Usuario General
+- Navegación de propiedades
+- Búsqueda inteligente con IA
+- Contacto directo
+- Chatbot de consultas
 
-## Licencia
+### 👨‍💼 Agente Inmobiliario
+- Portal personalizado
+- Gestión de propiedades asignadas
+- Seguimiento de clientes
+- Herramientas de análisis
 
-Este proyecto es propiedad de Grupo Inverland. Todos los derechos reservados.
+### 👑 Administrador
+- Panel de administración completo
+- Gestión de usuarios
+- Análisis avanzados
+- Configuración del sistema
+
+## 🔐 Variables de Entorno
+
+| Variable | Descripción | Requerida |
+|----------|-------------|-----------|
+| `GEMINI_API_KEY` | Clave API de Google Gemini | ✅ |
+| `WHATSAPP_PHONE_NUMBER` | Número de WhatsApp | ❌ |
+
+## 📄 Licencia
+
+Este proyecto es propiedad de **Grupo Inverland**. Todos los derechos reservados.
+
+## 🤝 Contribución
+
+Para contribuir al proyecto, por favor contacta con el equipo de desarrollo de Grupo Inverland.
+
+---
+
+**Desarrollado con ❤️ para Grupo Inverland**
