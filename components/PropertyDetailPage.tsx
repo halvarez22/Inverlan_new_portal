@@ -138,6 +138,73 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                              </ul>
                         </div>
                         
+                        {/* Videos Section */}
+                        {(property.videos && property.videos.length > 0) || property.video360 ? (
+                            <div>
+                                <h3 className="text-2xl font-bold text-inverland-dark mb-4">Videos</h3>
+                                
+                                {/* Videos de YouTube */}
+                                {property.videos && property.videos.length > 0 && (
+                                    <div className="mb-6">
+                                        <h4 className="text-lg font-semibold text-gray-800 mb-3">Videos de la Propiedad</h4>
+                                        <div className="space-y-4">
+                                            {property.videos.map((videoUrl, index) => (
+                                                <div key={index} className="bg-gray-50 rounded-lg p-4">
+                                                    <div className="flex items-center space-x-3 mb-3">
+                                                        <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                                                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                                            </svg>
+                                                        </div>
+                                                        <span className="text-sm text-gray-600">Video {index + 1}</span>
+                                                    </div>
+                                                    <a 
+                                                        href={videoUrl} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                                                    >
+                                                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                                        </svg>
+                                                        Ver en YouTube
+                                                    </a>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Video 360 */}
+                                {property.video360 && (
+                                    <div className="mb-6">
+                                        <h4 className="text-lg font-semibold text-gray-800 mb-3">Recorrido Virtual 360°</h4>
+                                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                                            <div className="flex items-center space-x-3 mb-3">
+                                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                                <span className="text-sm text-gray-600">Recorrido Virtual</span>
+                                            </div>
+                                            <a 
+                                                href={property.video360} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                            >
+                                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                                Ver Recorrido 360°
+                                            </a>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
+                        
                         {/* Location Map */}
                         <div>
                             <h3 className="text-2xl font-bold text-inverland-dark mb-4">Ubicación</h3>

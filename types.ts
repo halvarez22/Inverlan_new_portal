@@ -79,7 +79,8 @@ export interface Property {
     latitude: number;
     longitude: number;
     images: string[];
-    videos?: string[];
+    videos?: string[]; // URLs de videos de YouTube
+    video360?: string; // URL del recorrido 360
     mainPhotoIndex?: number;
     amenities: string[];
     status: 'For Sale' | 'Sold' | 'Rented';

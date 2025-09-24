@@ -20,6 +20,7 @@ import AdminDashboard from './components/AdminDashboard';
 import UserPortal from './components/UserPortal';
 import PropertyDetailPage from './components/PropertyDetailPage';
 import AddProperty from './components/AddProperty';
+import EditPropertyPage from './components/EditPropertyPage';
 import AgentsPage from './components/AgentsPage';
 import TrackingPage from './components/TrackingPage';
 import UserManagementPage from './components/UserManagementPage';
@@ -41,6 +42,7 @@ type View =
     | 'userPortal'
     | 'propertyDetail'
     | 'addProperty'
+    | 'editProperty'
     | 'agents'
     | 'tracking'
     | 'userManagement'
@@ -169,6 +171,7 @@ function App() {
             case 'userPortal': return <UserPortal onNavigate={(v) => handleNavigate(v as View)} />;
             case 'agentPortal': return <AgentPortal onNavigate={(v) => handleNavigate(v as View)} onViewClient={handleViewClient} onViewProperty={handleViewAgentProperty} selectedProperty={selectedProperty} selectedClient={selectedClient} />;
             case 'addProperty': return <AddProperty onPropertyAdded={() => handleNavigate('userPortal')} />;
+            case 'editProperty': return <EditPropertyPage onBack={() => handleNavigate('userPortal')} />;
             case 'agents': return <AgentsPage />;
             case 'tracking': return <TrackingPage />;
             case 'userManagement': return <UserManagementPage />;

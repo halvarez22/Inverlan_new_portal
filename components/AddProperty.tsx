@@ -86,13 +86,15 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         longitude: -99.1332,
         amenities: [],
         status: 'For Sale',
+        videos: [],
+        video360: '',
     });
 
     const [imageFiles, setImageFiles] = useState<File[]>([]);
-    const [videoFiles, setVideoFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-    const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
     const [mainPhotoIndex, setMainPhotoIndex] = useState<number>(0);
+    const [videoUrls, setVideoUrls] = useState<string[]>([]);
+    const [video360Url, setVideo360Url] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -125,54 +127,62 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         });
     };
     
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'image' | 'video') => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
-            if (fileType === 'image') {
-                // Verificar límite de 10 fotos por propiedad
-                const currentImageCount = imageFiles.length;
-                const newFilesCount = files.length;
-                const totalCount = currentImageCount + newFilesCount;
-                
-                if (totalCount > 10) {
-                    alert(`Máximo 10 fotos por propiedad. Actualmente tienes ${currentImageCount} fotos y estás intentando agregar ${newFilesCount}. Solo se agregarán ${10 - currentImageCount} fotos.`);
-                    const allowedFiles = files.slice(0, 10 - currentImageCount);
-                    setImageFiles(prev => [...prev, ...allowedFiles]);
-                    const newPreviews = allowedFiles.map(file => URL.createObjectURL(file as File));
-                    setImagePreviews(prev => [...prev, ...newPreviews]);
-                } else {
-                    setImageFiles(prev => [...prev, ...files]);
-                    const newPreviews = files.map(file => URL.createObjectURL(file as File));
-                    setImagePreviews(prev => [...prev, ...newPreviews]);
-                }
+            // Verificar límite de 10 fotos por propiedad
+            const currentImageCount = imageFiles.length;
+            const newFilesCount = files.length;
+            const totalCount = currentImageCount + newFilesCount;
+            
+            if (totalCount > 10) {
+                alert(`Máximo 10 fotos por propiedad. Actualmente tienes ${currentImageCount} fotos y estás intentando agregar ${newFilesCount}. Solo se agregarán ${10 - currentImageCount} fotos.`);
+                const allowedFiles = files.slice(0, 10 - currentImageCount);
+                setImageFiles(prev => [...prev, ...allowedFiles]);
+                const newPreviews = allowedFiles.map(file => URL.createObjectURL(file as File));
+                setImagePreviews(prev => [...prev, ...newPreviews]);
             } else {
-                setVideoFiles(prev => [...prev, ...files]);
-                // FIX: Cast file to File type for URL.createObjectURL.
-                 const newPreviews = files.map(file => URL.createObjectURL(file as File));
-                setVideoPreviews(prev => [...prev, ...newPreviews]);
+                setImageFiles(prev => [...prev, ...files]);
+                const newPreviews = files.map(file => URL.createObjectURL(file as File));
+                setImagePreviews(prev => [...prev, ...newPreviews]);
             }
         }
     };
     
-    const removeFile = (index: number, fileType: 'image' | 'video') => {
-        if (fileType === 'image') {
-            setImageFiles(prev => prev.filter((_, i) => i !== index));
-            setImagePreviews(prev => prev.filter((_, i) => i !== index));
-            
-            // Ajustar el índice de la foto principal si es necesario
-            if (index === mainPhotoIndex) {
-                setMainPhotoIndex(0); // Volver a la primera foto
-            } else if (index < mainPhotoIndex) {
-                setMainPhotoIndex(prev => prev - 1); // Ajustar índice
-            }
-        } else {
-            setVideoFiles(prev => prev.filter((_, i) => i !== index));
-            setVideoPreviews(prev => prev.filter((_, i) => i !== index));
+    const removeFile = (index: number) => {
+        setImageFiles(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+        
+        // Ajustar el índice de la foto principal si es necesario
+        if (index === mainPhotoIndex) {
+            setMainPhotoIndex(0); // Volver a la primera foto
+        } else if (index < mainPhotoIndex) {
+            setMainPhotoIndex(prev => prev - 1); // Ajustar índice
         }
     };
 
     const setMainPhoto = (index: number) => {
         setMainPhotoIndex(index);
+    };
+
+    const addVideoUrl = () => {
+        const url = prompt('Ingresa la URL del video de YouTube:');
+        if (url && url.trim()) {
+            // Validar que sea una URL de YouTube
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                setVideoUrls(prev => [...prev, url.trim()]);
+            } else {
+                alert('Por favor ingresa una URL válida de YouTube');
+            }
+        }
+    };
+
+    const removeVideoUrl = (index: number) => {
+        setVideoUrls(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleVideo360Change = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setVideo360Url(e.target.value);
     };
 
     const handleGenerateDescription = async () => {
@@ -205,10 +215,7 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
 
         try {
             const imagePromises = imageFiles.map(file => fileToDataUrl(file));
-            const videoPromises = videoFiles.map(file => fileToDataUrl(file));
-            
             const images = await Promise.all(imagePromises);
-            const videos = await Promise.all(videoPromises);
 
             const locationString = `${formData.city}, ${formData.state}`;
 
@@ -216,7 +223,8 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                 ...(formData as any), // Cast to any to handle optional number fields
                 location: locationString,
                 images,
-                videos,
+                videos: videoUrls, // URLs de YouTube
+                video360: video360Url, // URL del recorrido 360
                 mainPhotoIndex: mainPhotoIndex
             };
             
@@ -482,7 +490,7 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                 id="images" 
                                 multiple 
                                 accept="image/*" 
-                                onChange={(e) => handleFileChange(e, 'image')} 
+                                onChange={handleFileChange} 
                                 disabled={imageFiles.length >= 10}
                                 className={`mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-inverland-blue/10 file:text-inverland-blue hover:file:bg-inverland-blue/20 ${imageFiles.length >= 10 ? 'opacity-50 cursor-not-allowed' : ''}`}
                             />
@@ -506,7 +514,7 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                         />
                                         <button 
                                             type="button" 
-                                            onClick={() => removeFile(index, 'image')} 
+                                            onClick={() => removeFile(index)} 
                                             className="absolute top-0 right-0 m-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
                                             &times;
@@ -525,17 +533,57 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                 </p>
                             )}
                         </div>
-                         <div>
-                            <label htmlFor="videos" className="block text-sm font-medium text-gray-700">Videos</label>
-                            <input type="file" name="videos" id="videos" multiple accept="video/*" onChange={(e) => handleFileChange(e, 'video')} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-inverland-blue/10 file:text-inverland-blue hover:file:bg-inverland-blue/20"/>
-                             <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                                {videoPreviews.map((src, index) => (
-                                    <div key={index} className="relative group">
-                                        <video src={src} className="w-full h-24 object-cover rounded-lg bg-black"/>
-                                        <button type="button" onClick={() => removeFile(index, 'video')} className="absolute top-0 right-0 m-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
-                                    </div>
-                                ))}
-                            </div>
+                        
+                        {/* Videos de YouTube */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Videos de YouTube
+                                <span className="text-sm text-gray-500 ml-2">
+                                    ({videoUrls.length} videos)
+                                </span>
+                            </label>
+                            <button
+                                type="button"
+                                onClick={addVideoUrl}
+                                className="mb-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                            >
+                                + Agregar Video de YouTube
+                            </button>
+                            {videoUrls.length > 0 && (
+                                <div className="space-y-2">
+                                    {videoUrls.map((url, index) => (
+                                        <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                                            <span className="text-sm text-gray-600 flex-1 truncate">{url}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeVideoUrl(index)}
+                                                className="text-red-600 hover:text-red-800 text-sm"
+                                            >
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Video 360 */}
+                        <div>
+                            <label htmlFor="video360" className="block text-sm font-medium text-gray-700 mb-2">
+                                Video 360 (Recorrido Virtual)
+                            </label>
+                            <input
+                                type="url"
+                                id="video360"
+                                name="video360"
+                                value={video360Url}
+                                onChange={handleVideo360Change}
+                                placeholder="https://ejemplo.com/recorrido-360"
+                                className="mt-1 block w-full input-style"
+                            />
+                            <p className="mt-1 text-sm text-gray-500">
+                                Ingresa la URL del recorrido virtual 360° de la propiedad
+                            </p>
                         </div>
                     </fieldset>
                     

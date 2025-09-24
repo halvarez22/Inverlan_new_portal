@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from './AuthContext';
 
-type View = 'home' | 'login' | 'dashboard' | 'userPortal' | 'addProperty' | 'agents' | 'tracking' | 'userManagement' | 'clients' | 'marketing' | 'analytics';
+type View = 'home' | 'login' | 'dashboard' | 'userPortal' | 'addProperty' | 'editProperty' | 'agents' | 'tracking' | 'userManagement' | 'clients' | 'marketing' | 'analytics';
 
 interface UserPortalProps {
     onNavigate: (view: View) => void;
@@ -35,6 +35,12 @@ const TrackingIcon = () => (
 const UserAddIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+    </svg>
+);
+
+const EditPropertyIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
     </svg>
 );
 
@@ -101,6 +107,12 @@ const UserPortal: React.FC<UserPortalProps> = ({ onNavigate }) => {
                         description="Registra nuevas casas, departamentos o terrenos en el sistema."
                         icon={<AddPropertyIcon />}
                         onClick={() => onNavigate('addProperty')}
+                    />
+                    <ManagementCard 
+                        title="Edición de Fichas"
+                        description="Modifica y actualiza los datos de inmuebles ya registrados en el sistema."
+                        icon={<EditPropertyIcon />}
+                        onClick={() => onNavigate('editProperty')}
                     />
                     <ManagementCard 
                         title="Gestión de Clientes"
