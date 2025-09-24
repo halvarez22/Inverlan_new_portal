@@ -22,35 +22,38 @@ const Hero: React.FC<HeroProps> = ({ onSearch, isSearching }) => {
     };
 
     return (
-        <section id="home" className="relative h-screen min-h-[500px] flex items-center justify-center text-white">
-            <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
-            <img src="https://picsum.photos/1920/1080?grayscale&blur=2" alt="Fondo de ciudad" className="absolute inset-0 w-full h-full object-cover" />
+        <section id="home" className="relative h-screen min-h-[600px] md:min-h-[700px] flex items-center justify-center text-white">
+            <div className="absolute inset-0 bg-inverland-dark opacity-60 z-10"></div>
+            <img src="/images/portada.jpeg" alt="Portal Inverland - Tu mejor inversión está aquí" className="absolute inset-0 w-full h-full object-cover" />
             
-            <div className="relative z-20 text-center px-4 w-full">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-lg">Tu mejor inversión está aquí</h1>
-                <p className="text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 drop-shadow-md">Describe la propiedad de tus sueños y la encontraremos para ti.</p>
+            <div className="relative z-20 text-center px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
+                <div className="flex justify-center mb-4 sm:mb-6 md:mb-8">
+                    <img src="/images/logo.png" alt="Inverland Logo" className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 object-contain drop-shadow-lg" />
+                </div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-3 sm:mb-4 md:mb-6 drop-shadow-lg leading-tight">Tu mejor inversión está aquí</h1>
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl mx-auto mb-6 sm:mb-8 md:mb-10 drop-shadow-md px-2">Describe la propiedad de tus sueños y la encontraremos para ti.</p>
                 
-                <div className="bg-white/90 backdrop-blur-sm p-4 sm:p-6 rounded-lg shadow-2xl max-w-3xl mx-auto">
-                    <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-4 items-center">
+                <div className="bg-white/95 backdrop-blur-sm p-3 sm:p-4 md:p-6 rounded-2xl shadow-inverland-lg max-w-4xl mx-auto border border-white/20">
+                    <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
                         <input
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Ej: Casa con alberca en Querétaro"
-                            className="w-full flex-grow p-3 sm:p-4 rounded-md border border-gray-300 bg-white text-gray-800 text-sm sm:text-base focus:ring-2 focus:ring-inverland-green focus:border-transparent outline-none"
+                            className="w-full flex-grow p-3 sm:p-4 rounded-xl border border-inverland-gray/30 bg-white text-inverland-dark text-sm sm:text-base focus:ring-2 focus:ring-inverland-primary focus:border-inverland-primary outline-none min-h-[48px] font-body"
                             aria-label="Búsqueda de propiedades"
                         />
                         <button 
                             type="submit" 
                             disabled={isSearching}
-                            className="w-full sm:w-auto bg-inverland-green text-white font-bold p-3 sm:p-4 rounded-md flex items-center justify-center hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105 shadow-md disabled:bg-gray-400 disabled:scale-100 disabled:cursor-not-allowed"
+                            className="w-full sm:w-auto bg-gradient-to-r from-inverland-primary to-inverland-secondary text-white font-bold p-3 sm:p-4 rounded-xl flex items-center justify-center hover:from-inverland-secondary hover:to-inverland-primary transition-all duration-300 transform hover:scale-105 shadow-inverland disabled:bg-inverland-gray disabled:scale-100 disabled:cursor-not-allowed min-h-[48px] whitespace-nowrap font-heading"
                         >
                             {isSearching ? (
                                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                             ) : (
                                 <>
                                     <SearchIcon />
-                                    Buscar
+                                    <span className="ml-2">Buscar</span>
                                 </>
                             )}
                         </button>

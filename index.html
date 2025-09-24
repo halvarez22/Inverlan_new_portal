@@ -11,12 +11,58 @@
         theme: {
           extend: {
             colors: {
+              // Colores Primarios Inverland
+              'inverland-primary': '#083d5c',      // Azul marino principal
+              'inverland-secondary': '#1E3A8A',    // Azul corporativo
+              'inverland-accent': '#059669',       // Verde esmeralda
+              'inverland-gold': '#D97706',         // Dorado corporativo
+              
+              // Colores Neutros
+              'inverland-dark': '#0F172A',         // Negro corporativo
+              'inverland-gray': '#64748B',         // Gris corporativo
+              'inverland-light': '#F8FAFC',        // Gris claro
+              
+              // Colores de Estado
+              'inverland-success': '#10B981',      // Verde éxito
+              'inverland-warning': '#F59E0B',      // Amarillo advertencia
+              'inverland-error': '#EF4444',        // Rojo error
+              'inverland-info': '#3B82F6',         // Azul información
+              
+              // Alias para compatibilidad
               'inverland-green': '#083d5c',
-              'inverland-dark': '#0F172A',
               'inverland-blue': '#1E3A8A',
             },
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              heading: ['Inter', 'system-ui', 'sans-serif'],
+              body: ['Inter', 'system-ui', 'sans-serif'],
+            },
+            fontSize: {
+              'xs': ['0.75rem', { lineHeight: '1rem' }],
+              'sm': ['0.875rem', { lineHeight: '1.25rem' }],
+              'base': ['1rem', { lineHeight: '1.5rem' }],
+              'lg': ['1.125rem', { lineHeight: '1.75rem' }],
+              'xl': ['1.25rem', { lineHeight: '1.75rem' }],
+              '2xl': ['1.5rem', { lineHeight: '2rem' }],
+              '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+              '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+              '5xl': ['3rem', { lineHeight: '1' }],
+              '6xl': ['3.75rem', { lineHeight: '1' }],
+              '7xl': ['4.5rem', { lineHeight: '1' }],
+            },
+            spacing: {
+              '18': '4.5rem',
+              '88': '22rem',
+              '128': '32rem',
+            },
+            borderRadius: {
+              'xl': '0.75rem',
+              '2xl': '1rem',
+              '3xl': '1.5rem',
+            },
+            boxShadow: {
+              'inverland': '0 4px 6px -1px rgba(8, 61, 92, 0.1), 0 2px 4px -1px rgba(8, 61, 92, 0.06)',
+              'inverland-lg': '0 10px 15px -3px rgba(8, 61, 92, 0.1), 0 4px 6px -2px rgba(8, 61, 92, 0.05)',
             }
           }
         }

@@ -11,15 +11,14 @@ const SocialIcon: React.FC<{ href: string, children: React.ReactNode }> = ({ hre
 
 const Footer: React.FC = () => {
     return (
-        <footer className="bg-inverland-dark text-white">
+        <footer className="bg-gradient-to-br from-inverland-dark to-inverland-primary text-white">
             <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
                     <div className="col-span-1 sm:col-span-2 md:col-span-1">
                         <div className="flex items-center space-x-2 mb-4">
-                            <div className="w-8 h-8 bg-inverland-green rounded-full"></div>
-                            <span className="text-2xl font-bold tracking-tight">Inverland</span>
+                            <img src="/images/logo.png" alt="Inverland Logo" className="w-14 h-14 object-contain" />
                         </div>
-                        <p className="text-gray-400">Transformando el panorama inmobiliario de México con proyectos innovadores y de alta calidad.</p>
+                        <p className="text-inverland-light font-body leading-relaxed">Transformando el panorama inmobiliario de México con proyectos innovadores y de alta calidad.</p>
                     </div>
                     <div>
                         <h3 className="font-bold text-lg mb-4">Navegación</h3>

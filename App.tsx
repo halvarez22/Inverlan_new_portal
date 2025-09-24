@@ -31,6 +31,8 @@ import AnalyticsPage from './components/AnalyticsPage';
 import AgentPortal from './components/AgentPortal';
 import ClientDetailPage from './components/ClientDetailPage';
 import AgentPropertyDetailPage from './components/AgentPropertyDetailPage';
+import AboutPage from './components/AboutPage';
+import ContactPage from './components/ContactPage';
 
 type View =
     | 'home'
@@ -47,7 +49,9 @@ type View =
     | 'analytics'
     | 'agentPortal'
     | 'clientDetail'
-    | 'agentPropertyDetail';
+    | 'agentPropertyDetail'
+    | 'about'
+    | 'contact';
 
 function App() {
     const { isAuthenticated, currentUser, logout: authLogout } = useAuth();
@@ -102,8 +106,14 @@ function App() {
     };
 
     const handleNavClick = (href: string) => {
-        const element = document.querySelector(href);
-        element?.scrollIntoView({ behavior: 'smooth' });
+        if (href === '#about') {
+            handleNavigate('about');
+        } else if (href === '#contact') {
+            handleNavigate('contact');
+        } else {
+            const element = document.querySelector(href);
+            element?.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     const handleSearch = async (query: string) => {
@@ -148,6 +158,8 @@ function App() {
             switch (view) {
                 case 'login': return <LoginPage onLoginSuccess={handleLoginSuccess} />;
                 case 'propertyDetail': return selectedProperty ? <PropertyDetailPage property={selectedProperty} onBack={handleBackToList} /> : homePage;
+                case 'about': return <AboutPage />;
+                case 'contact': return <ContactPage />;
                 default: return homePage;
             }
         }
@@ -166,6 +178,8 @@ function App() {
             case 'propertyDetail': return selectedProperty ? <PropertyDetailPage property={selectedProperty} onBack={handleBackToList} /> : homePage;
             case 'clientDetail': return selectedClient ? <ClientDetailPage client={selectedClient} onBack={() => handleNavigate('agentPortal')} /> : <AgentPortal onNavigate={(v) => handleNavigate(v as View)} onViewClient={handleViewClient} onViewProperty={handleViewAgentProperty} selectedProperty={selectedProperty} selectedClient={selectedClient} />;
             case 'agentPropertyDetail': return selectedProperty ? <AgentPropertyDetailPage property={selectedProperty} onBack={() => handleNavigate('agentPortal')} /> : <AgentPortal onNavigate={(v) => handleNavigate(v as View)} onViewClient={handleViewClient} onViewProperty={handleViewAgentProperty} selectedProperty={selectedProperty} selectedClient={selectedClient} />;
+            case 'about': return <AboutPage />;
+            case 'contact': return <ContactPage />;
             case 'home':
             default: return homePage;
         }
