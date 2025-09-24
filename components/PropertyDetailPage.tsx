@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Property } from '../types';
-import SinglePropertyMap from './SinglePropertyMap';
+import SimplePropertyMap from './SimplePropertyMap';
 
 interface PropertyDetailPageProps {
     property: Property;
@@ -208,7 +208,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                         {/* Location Map */}
                         <div>
                             <h3 className="text-2xl font-bold text-inverland-dark mb-4">Ubicación</h3>
-                            <SinglePropertyMap 
+                            <SimplePropertyMap 
                                 lat={property.latitude} 
                                 lng={property.longitude} 
                                 popupText={property.title}

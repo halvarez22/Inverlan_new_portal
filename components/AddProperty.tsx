@@ -97,6 +97,8 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
     const [video360Url, setVideo360Url] = useState<string>('');
     const [isLoading, setIsLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [formattedPrice, setFormattedPrice] = useState<string>('');
+    const [formattedRentPrice, setFormattedRentPrice] = useState<string>('');
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
@@ -183,6 +185,52 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
 
     const handleVideo360Change = (e: React.ChangeEvent<HTMLInputElement>) => {
         setVideo360Url(e.target.value);
+    };
+
+    // Función para formatear números con comas y punto decimal
+    const formatNumber = (value: string): string => {
+        // Remover caracteres no numéricos excepto punto decimal
+        const cleanValue = value.replace(/[^0-9.]/g, '');
+        
+        // Si está vacío, retornar vacío
+        if (!cleanValue) return '';
+        
+        // Separar parte entera y decimal
+        const parts = cleanValue.split('.');
+        const integerPart = parts[0];
+        const decimalPart = parts[1];
+        
+        // Formatear parte entera con comas
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        
+        // Si hay parte decimal, agregarla
+        if (decimalPart !== undefined) {
+            return `${formattedInteger}.${decimalPart}`;
+        }
+        
+        return formattedInteger;
+    };
+
+    // Función para convertir formato con comas a número
+    const parseFormattedNumber = (formattedValue: string): number => {
+        const cleanValue = formattedValue.replace(/,/g, '');
+        return parseFloat(cleanValue) || 0;
+    };
+
+    // Manejar cambio en precio de venta
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatNumber(e.target.value);
+        setFormattedPrice(formatted);
+        const numericValue = parseFormattedNumber(formatted);
+        setFormData(prev => ({ ...prev, price: numericValue }));
+    };
+
+    // Manejar cambio en precio de renta
+    const handleRentPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatNumber(e.target.value);
+        setFormattedRentPrice(formatted);
+        const numericValue = parseFormattedNumber(formatted);
+        setFormData(prev => ({ ...prev, rentPrice: numericValue }));
     };
 
     const handleGenerateDescription = async () => {
@@ -290,8 +338,34 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                 <label className="flex items-center"><input type="radio" name="operationType" value="Renta temporal" checked={formData.operationType === 'Renta temporal'} onChange={handleRadioChange} className="radio-style"/> <span className="ml-2">Renta temporal</span></label>
                             </div>
                         </div>
-                        {formData.operationType === 'Venta' && <InputField label="Precio de Venta (MXN)" name="price" type="number" required value={formData.price} onChange={handleInputChange} />}
-                        {formData.operationType?.includes('Renta') && <InputField label="Precio de Renta (MXN)" name="rentPrice" type="number" required value={formData.rentPrice} onChange={handleInputChange} />}
+                        {formData.operationType === 'Venta' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Precio de Venta (MXN) *</label>
+                                <input
+                                    type="text"
+                                    name="price"
+                                    value={formattedPrice}
+                                    onChange={handlePriceChange}
+                                    required
+                                    placeholder="Ej: 1,500,000.00"
+                                    className="mt-1 block w-full input-style"
+                                />
+                            </div>
+                        )}
+                        {formData.operationType?.includes('Renta') && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Precio de Renta (MXN) *</label>
+                                <input
+                                    type="text"
+                                    name="rentPrice"
+                                    value={formattedRentPrice}
+                                    onChange={handleRentPriceChange}
+                                    required
+                                    placeholder="Ej: 15,000.00"
+                                    className="mt-1 block w-full input-style"
+                                />
+                            </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Mostrar precios en el anuncio</label>
                             <div className="mt-2 flex space-x-4">

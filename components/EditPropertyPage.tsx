@@ -427,6 +427,56 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
                                             <input type="text" name="street" value={formData.street} onChange={handleInputChange} required className="mt-1 block w-full input-style" />
                                         </div>
                                     </div>
+                                    
+                                    {/* Coordenadas */}
+                                    <div className="mt-6">
+                                        <h4 className="text-lg font-semibold text-gray-800 mb-4">Coordenadas GPS</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">Latitud</label>
+                                                <input 
+                                                    type="number" 
+                                                    name="latitude" 
+                                                    value={formData.latitude} 
+                                                    onChange={handleInputChange} 
+                                                    step="any"
+                                                    placeholder="Ej: 21.1452314838769"
+                                                    className="mt-1 block w-full input-style" 
+                                                />
+                                                <p className="mt-1 text-sm text-gray-500">
+                                                    Coordenada norte-sur (ej: 21.1452314838769)
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700">Longitud</label>
+                                                <input 
+                                                    type="number" 
+                                                    name="longitude" 
+                                                    value={formData.longitude} 
+                                                    onChange={handleInputChange} 
+                                                    step="any"
+                                                    placeholder="Ej: -101.69151450378543"
+                                                    className="mt-1 block w-full input-style" 
+                                                />
+                                                <p className="mt-1 text-sm text-gray-500">
+                                                    Coordenada este-oeste (ej: -101.69151450378543)
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                                            <p className="text-sm text-blue-800">
+                                                💡 <strong>Consejo:</strong> Puedes obtener las coordenadas exactas usando Google Maps. 
+                                                Haz clic derecho en la ubicación y selecciona "¿Qué hay aquí?" para ver las coordenadas.
+                                            </p>
+                                            <div className="mt-3 p-2 bg-white rounded border">
+                                                <p className="text-xs text-gray-600">
+                                                    <strong>Coordenadas actuales:</strong><br/>
+                                                    Latitud: {formData.latitude}<br/>
+                                                    Longitud: {formData.longitude}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </fieldset>
 
                                 {/* Videos */}
