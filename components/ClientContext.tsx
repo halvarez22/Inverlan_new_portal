@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Client, ClientActivityLog } from '../types';
 import { SAMPLE_CLIENTS } from '../constants';
+import { clientService } from '../services/firebaseService';
 
 interface ClientContextType {
     clients: Client[];

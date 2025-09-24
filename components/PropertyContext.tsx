@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Property, ActivityLog } from '../types';
 import { SAMPLE_PROPERTIES } from '../constants';
+import { propertyService } from '../services/firebaseService';
 
 interface PropertyContextType {
     properties: Property[];
@@ -18,18 +19,35 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [properties, setProperties] = useState<Property[]>([]);
 
     useEffect(() => {
-        try {
-            const storedProperties = localStorage.getItem('inverland_properties');
-            if (storedProperties) {
-                setProperties(JSON.parse(storedProperties));
-            } else {
-                setProperties(SAMPLE_PROPERTIES);
-                localStorage.setItem('inverland_properties', JSON.stringify(SAMPLE_PROPERTIES));
+        const loadProperties = async () => {
+            try {
+                const firebaseProperties = await propertyService.getAllProperties();
+                if (firebaseProperties.length > 0) {
+                    setProperties(firebaseProperties);
+                } else {
+                    // Si no hay propiedades en Firebase, usar las de muestra
+                    setProperties(SAMPLE_PROPERTIES);
+                    // Opcional: migrar propiedades de muestra a Firebase
+                    // await migrateSampleProperties();
+                }
+            } catch (error) {
+                console.error("Failed to load properties from Firebase:", error);
+                // Fallback a localStorage si Firebase falla
+                try {
+                    const storedProperties = localStorage.getItem('inverland_properties');
+                    if (storedProperties) {
+                        setProperties(JSON.parse(storedProperties));
+                    } else {
+                        setProperties(SAMPLE_PROPERTIES);
+                    }
+                } catch (localError) {
+                    console.error("Failed to access localStorage for properties:", localError);
+                    setProperties(SAMPLE_PROPERTIES);
+                }
             }
-        } catch (error) {
-            console.error("Failed to access localStorage for properties:", error);
-            setProperties(SAMPLE_PROPERTIES);
-        }
+        };
+
+        loadProperties();
     }, []);
 
     const saveProperties = (newProperties: Property[]) => {
@@ -41,20 +59,75 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
         setProperties(newProperties);
     };
 
-    const addProperty = (property: Omit<Property, 'id'>) => {
-        const newProperty: Property = { ...property, id: `prop-${Date.now()}` };
-        const updatedProperties = [...properties, newProperty];
-        saveProperties(updatedProperties);
+    const addProperty = async (property: Omit<Property, 'id'>) => {
+        try {
+            const newPropertyId = await propertyService.addProperty(property);
+            const newProperty: Property = { ...property, id: newPropertyId };
+            setProperties(prev => [newProperty, ...prev]);
+            
+            // También guardar en localStorage como backup
+            try {
+                const updatedProperties = [newProperty, ...properties];
+                localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+            } catch (localError) {
+                console.warn("Failed to save to localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to add property to Firebase:", error);
+            // Fallback a localStorage
+            const newProperty: Property = { ...property, id: `prop-${Date.now()}` };
+            const updatedProperties = [...properties, newProperty];
+            setProperties(updatedProperties);
+            localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+        }
     };
 
-    const updateProperty = (updatedProperty: Property) => {
-        const updatedProperties = properties.map(p => (p.id === updatedProperty.id ? updatedProperty : p));
-        saveProperties(updatedProperties);
+    const updateProperty = async (updatedProperty: Property) => {
+        try {
+            await propertyService.updateProperty(updatedProperty.id, updatedProperty);
+            setProperties(prev => prev.map(prop => 
+                prop.id === updatedProperty.id ? updatedProperty : prop
+            ));
+            
+            // También actualizar localStorage como backup
+            try {
+                const updatedProperties = properties.map(prop => 
+                    prop.id === updatedProperty.id ? updatedProperty : prop
+                );
+                localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+            } catch (localError) {
+                console.warn("Failed to update localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to update property in Firebase:", error);
+            // Fallback a localStorage
+            const updatedProperties = properties.map(prop => 
+                prop.id === updatedProperty.id ? updatedProperty : prop
+            );
+            setProperties(updatedProperties);
+            localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+        }
     };
 
-    const deleteProperty = (propertyId: string) => {
-        const updatedProperties = properties.filter(p => p.id !== propertyId);
-        saveProperties(updatedProperties);
+    const deleteProperty = async (propertyId: string) => {
+        try {
+            await propertyService.deleteProperty(propertyId);
+            setProperties(prev => prev.filter(prop => prop.id !== propertyId));
+            
+            // También actualizar localStorage como backup
+            try {
+                const updatedProperties = properties.filter(prop => prop.id !== propertyId);
+                localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+            } catch (localError) {
+                console.warn("Failed to update localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to delete property from Firebase:", error);
+            // Fallback a localStorage
+            const updatedProperties = properties.filter(prop => prop.id !== propertyId);
+            setProperties(updatedProperties);
+            localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+        }
     };
 
     const assignPropertiesToAgent = (agentId: string, propertyIds: string[]) => {
