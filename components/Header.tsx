@@ -3,8 +3,9 @@ import { NAV_LINKS } from '../constants';
 import { useAuth } from './AuthContext';
 
 const Logo = () => (
-    <div className="flex items-center">
-        <img src="./images/logo.png" alt="Inverland" className="h-10 w-auto" />
+    <div className="flex items-center space-x-2">
+        <div className="w-8 h-8 bg-inverland-green rounded-full"></div>
+        <span className="text-xl sm:text-2xl font-bold text-white tracking-tight">Inverland</span>
     </div>
 );
 

@@ -4,12 +4,18 @@ import { PropertyFilters } from '../types';
 let ai: GoogleGenAI | null = null;
 let chat: Chat | null = null;
 
-const initializeAi = () => {
+const initializeAi = (): GoogleGenAI => {
     if (!ai) {
-        if (!process.env.GEMINI_API_KEY) {
-            throw new Error("GEMINI_API_KEY environment variable not set");
+        try {
+            const apiKey = process.env.API_KEY;
+            if (!apiKey) {
+                throw new Error("API_KEY not found. The execution environment must provide it.");
+            }
+            ai = new GoogleGenAI({ apiKey });
+        } catch (e) {
+            console.error("AI Initialization Error:", e);
+            throw new Error("Failed to initialize the AI service: API key is missing or invalid.");
         }
-        ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     }
     return ai;
 }
@@ -34,7 +40,7 @@ export const sendMessageToGemini = async (message: string): Promise<string> => {
     return result.text;
   } catch (error) {
     console.error("Error communicating with Gemini API:", error);
-    if (error instanceof Error && error.message.includes("API_KEY")) {
+    if (error instanceof Error && error.message.includes("API key")) {
         return "Error: La clave de API no está configurada correctamente. Por favor, contacta al administrador.";
     }
     return "Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde.";

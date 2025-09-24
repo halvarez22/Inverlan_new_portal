@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { User } from '../types';
 import UserEditModal from './UserEditModal';
+import { useProperties } from './PropertyContext';
+import { useClients } from './ClientContext';
 
 const UserManagementPage: React.FC = () => {
-    const { users, registerUser, deleteUser } = useAuth();
+    const { users, registerUser, deleteUser, statusMessage, clearStatusMessage } = useAuth();
+    const { properties } = useProperties();
+    const { clients } = useClients();
     
     const initialFormState = {
         username: '',
@@ -14,10 +18,26 @@ const UserManagementPage: React.FC = () => {
         role: 'agent' as 'admin' | 'user' | 'agent' | 'referrer'
     };
     const [formData, setFormData] = useState(initialFormState);
-    const [message, setMessage] = useState('');
     
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        // Clear message on component unmount
+        return () => {
+            clearStatusMessage();
+        };
+    }, [clearStatusMessage]);
+
+     useEffect(() => {
+        // Auto-clear message after a few seconds
+        if (statusMessage) {
+            const timer = setTimeout(() => {
+                clearStatusMessage();
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [statusMessage, clearStatusMessage]);
 
     const handleOpenEditModal = (user: User) => {
         setEditingUser(user);
@@ -39,9 +59,9 @@ const UserManagementPage: React.FC = () => {
 
     const handleRegister = (e: React.FormEvent) => {
         e.preventDefault();
-        setMessage('');
+        clearStatusMessage();
         if (!formData.username || !formData.password || !formData.name) {
-            setMessage('Por favor, completa todos los campos requeridos.');
+             // Basic validation, context will handle if user exists
             return;
         }
         
@@ -53,12 +73,13 @@ const UserManagementPage: React.FC = () => {
             commissionRate: formData.role === 'agent' ? formData.commissionRate / 100 : undefined,
         };
 
-        const success = registerUser(newUser);
-        if (success) {
-            setMessage(`Usuario '${formData.username}' creado exitosamente.`);
-            setFormData(initialFormState);
-        } else {
-            setMessage(`El usuario '${formData.username}' ya existe.`);
+        registerUser(newUser);
+        setFormData(initialFormState); // Reset form optimistically
+    };
+
+    const handleDelete = (userId: string, userName: string) => {
+        if (window.confirm(`¿Estás seguro de que deseas eliminar al usuario "${userName}"? Esta acción no se puede deshacer.`)) {
+            deleteUser(userId, userName, properties, clients);
         }
     };
 
@@ -73,7 +94,11 @@ const UserManagementPage: React.FC = () => {
                         <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-lg shadow-xl self-start">
                             <h3 className="text-2xl font-bold text-inverland-dark mb-6">Crear Nuevo Usuario</h3>
                             <form onSubmit={handleRegister} className="space-y-4">
-                                {message && <p className={`px-4 py-3 rounded relative text-sm ${message.includes('exitosamente') ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'}`} role="alert">{message}</p>}
+                                {statusMessage && (
+                                    <p className={`px-4 py-3 rounded relative text-sm ${statusMessage.startsWith('Éxito') ? 'bg-green-100 border border-green-400 text-green-700' : 'bg-red-100 border border-red-400 text-red-700'}`} role="alert">
+                                        {statusMessage}
+                                    </p>
+                                )}
                                 <div>
                                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre Completo</label>
                                     <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} required className="mt-1 block w-full input-style"/>
@@ -130,7 +155,7 @@ const UserManagementPage: React.FC = () => {
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{user.role}</td>
                                                 <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
                                                     <button onClick={() => handleOpenEditModal(user)} className="text-inverland-blue hover:text-inverland-dark">Editar</button>
-                                                    <button onClick={() => deleteUser(user.id)} className="text-red-600 hover:text-red-800">Eliminar</button>
+                                                    <button onClick={() => handleDelete(user.id, user.username)} className="text-red-600 hover:text-red-800">Eliminar</button>
                                                 </td>
                                             </tr>
                                         ))}

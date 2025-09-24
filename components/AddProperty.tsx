@@ -24,6 +24,29 @@ const fileToDataUrl = (file: File): Promise<string> => {
     });
 };
 
+// Define InputField props for type safety
+interface InputFieldProps {
+    label: string;
+    name: string;
+    type?: string;
+    required?: boolean;
+    placeholder?: string;
+    value?: any;
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+    children?: React.ReactNode;
+}
+
+// Moved InputField component outside of AddProperty to prevent re-definition on every render
+const InputField: React.FC<InputFieldProps> = ({label, name, type="text", required=false, placeholder, value, onChange, children}) => (
+     <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}{required && <span className="text-red-500">*</span>}</label>
+        {children ? children : (
+            <input type={type} name={name} id={name} required={required} placeholder={placeholder} value={value ?? ''} onChange={onChange} className="mt-1 block w-full input-style"/>
+        )}
+    </div>
+);
+
+
 const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
     const { addProperty } = useProperties();
     
@@ -106,11 +129,13 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
             const files = Array.from(e.target.files);
             if (fileType === 'image') {
                 setImageFiles(prev => [...prev, ...files]);
-                const newPreviews = files.map(file => URL.createObjectURL(file));
+                // FIX: Cast file to File type for URL.createObjectURL.
+                const newPreviews = files.map(file => URL.createObjectURL(file as File));
                 setImagePreviews(prev => [...prev, ...newPreviews]);
             } else {
                 setVideoFiles(prev => [...prev, ...files]);
-                 const newPreviews = files.map(file => URL.createObjectURL(file));
+                // FIX: Cast file to File type for URL.createObjectURL.
+                 const newPreviews = files.map(file => URL.createObjectURL(file as File));
                 setVideoPreviews(prev => [...prev, ...newPreviews]);
             }
         }
@@ -181,15 +206,6 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         }
     };
     
-    const InputField: React.FC<{ label: string, name: string, type?: string, required?: boolean, placeholder?: string, value?: any, onChange?: any, children?: React.ReactNode}> = ({label, name, type="text", required=false, placeholder, value, onChange, children}) => (
-         <div>
-            <label htmlFor={name} className="block text-sm font-medium text-gray-700">{label}{required && <span className="text-red-500">*</span>}</label>
-            {children ? children : (
-                <input type={type} name={name} id={name} required={required} placeholder={placeholder} value={value ?? ''} onChange={onChange || handleInputChange} className="mt-1 block w-full input-style"/>
-            )}
-        </div>
-    );
-
     return (
         <section className="py-16 md:py-24 bg-gray-100">
             <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
@@ -198,12 +214,12 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                     
                     <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
                         <legend className="text-xl font-bold px-2 text-inverland-dark">Información Básica</legend>
-                        <InputField label="Tipo de propiedad" name="type" required>
+                        <InputField label="Tipo de propiedad" name="type" required onChange={handleInputChange}>
                            <select name="type" id="type" required value={formData.type} onChange={handleInputChange} className="mt-1 block w-full input-style">
                                {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                            </select>
                         </InputField>
-                        <InputField label="Título del anuncio" name="title" required />
+                        <InputField label="Título del anuncio" name="title" required value={formData.title} onChange={handleInputChange} />
                         <div>
                             <div className="flex justify-between items-center mb-1">
                                 <label htmlFor="description" className="block text-sm font-medium text-gray-700">Descripción del anuncio<span className="text-red-500">*</span></label>
@@ -227,6 +243,7 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                 </button>
                             </div>
                             <textarea name="description" id="description" required value={formData.description} rows={5} onChange={handleInputChange} className="mt-1 block w-full input-style" placeholder="Describe la propiedad o genera una descripción con IA..."></textarea>
+                            <p className="text-xs text-gray-500 mt-1">Para una descripción más precisa, completa los campos de tipo, ubicación, recámaras, baños y amenidades.</p>
                         </div>
                     </fieldset>
 
@@ -240,8 +257,8 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                 <label className="flex items-center"><input type="radio" name="operationType" value="Renta temporal" checked={formData.operationType === 'Renta temporal'} onChange={handleRadioChange} className="radio-style"/> <span className="ml-2">Renta temporal</span></label>
                             </div>
                         </div>
-                        {formData.operationType === 'Venta' && <InputField label="Precio de Venta (MXN)" name="price" type="number" required />}
-                        {formData.operationType?.includes('Renta') && <InputField label="Precio de Renta (MXN)" name="rentPrice" type="number" required />}
+                        {formData.operationType === 'Venta' && <InputField label="Precio de Venta (MXN)" name="price" type="number" required value={formData.price} onChange={handleInputChange} />}
+                        {formData.operationType?.includes('Renta') && <InputField label="Precio de Renta (MXN)" name="rentPrice" type="number" required value={formData.rentPrice} onChange={handleInputChange} />}
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Mostrar precios en el anuncio</label>
                             <div className="mt-2 flex space-x-4">
@@ -254,22 +271,22 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                     <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
                         <legend className="text-xl font-bold px-2 text-inverland-dark">Características</legend>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                            <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" />
-                            <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado"/>
-                            <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado"/>
-                            <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado"/>
-                            <InputField label="Construcción (m²)" name="constructionArea" type="number" />
-                            <InputField label="Terreno (m²)" name="landArea" type="number" />
-                            <InputField label="Fondo (m)" name="landDepth" type="number" />
-                            <InputField label="Frente (m)" name="landFront" type="number" />
-                            <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado"/>
-                            <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado"/>
-                            <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado"/>
-                            <InputField label="Mantenim." name="maintenanceFee" type="number" />
+                            <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                            <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                            <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado" value={formData.halfBathrooms} onChange={handleInputChange}/>
+                            <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                            <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                            <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                            <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                            <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
+                            <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                            <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                            <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                            <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
                         </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                            <InputField label="Clave interna" name="internalKey" placeholder="Ej. DPTO123" />
-                            <InputField label="Código de la llave" name="keyLockerCode" placeholder="Ej. C123"/>
+                            <InputField label="Clave interna" name="internalKey" placeholder="Ej. DPTO123" value={formData.internalKey} onChange={handleInputChange} />
+                            <InputField label="Código de la llave" name="keyLockerCode" placeholder="Ej. C123" value={formData.keyLockerCode} onChange={handleInputChange}/>
                          </div>
                     </fieldset>
                     
@@ -277,22 +294,22 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                         <legend className="text-xl font-bold px-2 text-inverland-dark">Ubicación</legend>
                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                              <InputField label="País" name="country" value="México" onChange={() => {}} />
-                             <InputField label="Estado" name="state" required />
-                             <InputField label="Ciudad" name="city" required />
+                             <InputField label="Estado" name="state" required value={formData.state} onChange={handleInputChange} />
+                             <InputField label="Ciudad" name="city" required value={formData.city} onChange={handleInputChange} />
                          </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                              <InputField label="Colonia" name="neighborhood" />
-                              <InputField label="Código Postal" name="zipCode" />
+                              <InputField label="Colonia" name="neighborhood" value={formData.neighborhood} onChange={handleInputChange} />
+                              <InputField label="Código Postal" name="zipCode" value={formData.zipCode} onChange={handleInputChange} />
                          </div>
                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                            <InputField label="Calle" name="street" required />
-                            <InputField label="Número" name="streetNumber" />
-                            <InputField label="Interior" name="interiorNumber" />
-                            <InputField label="Esquina con" name="crossStreet" />
+                            <InputField label="Calle" name="street" required value={formData.street} onChange={handleInputChange} />
+                            <InputField label="Número" name="streetNumber" value={formData.streetNumber} onChange={handleInputChange} />
+                            <InputField label="Interior" name="interiorNumber" value={formData.interiorNumber} onChange={handleInputChange} />
+                            <InputField label="Esquina con" name="crossStreet" value={formData.crossStreet} onChange={handleInputChange} />
                          </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                             <InputField label="Latitud" name="latitude" type="number" required />
-                             <InputField label="Longitud" name="longitude" type="number" required />
+                             <InputField label="Latitud" name="latitude" type="number" required value={formData.latitude} onChange={handleInputChange} />
+                             <InputField label="Longitud" name="longitude" type="number" required value={formData.longitude} onChange={handleInputChange} />
                          </div>
                          <div>
                             <label className="block text-sm font-medium text-gray-700">Mostrar ubicación exacta</label>

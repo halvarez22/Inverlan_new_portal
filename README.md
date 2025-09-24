@@ -1,7 +1,7 @@
 # 🏢 Portal Inverland - Plataforma Digital
 
 <div align="center">
-<img width="1200" alt="Inverland Portal" src="https://github.com/halvarez22/inverland-new-portal/raw/main/images/logo.png" />
+<img width="1200" height="475" alt="Portal Inverland" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
 ## 📋 Descripción
@@ -10,59 +10,59 @@ Portal digital completo para la gestión de propiedades y clientes de Grupo Inve
 
 ## ✨ Características Principales
 
-- 🏠 **Gestión de Propiedades**: Catálogo completo con filtros avanzados
-- 👥 **Gestión de Clientes**: CRM integrado para seguimiento de leads
-- 👨‍💼 **Portal de Agentes**: Dashboard personalizado para agentes inmobiliarios
-- 📊 **Panel de Administración**: Herramientas de gestión y análisis
-- 🤖 **IA Integrada**: Recomendaciones inteligentes con Gemini AI
-- 📱 **Responsive Design**: Optimizado para móviles y tablets
-- 💬 **Chatbot**: Asistente virtual para consultas
-- 📞 **Integración WhatsApp**: Comunicación directa con clientes
+* 🏠 **Gestión de Propiedades**: Catálogo completo con filtros avanzados
+* 👥 **Gestión de Clientes**: CRM integrado para seguimiento de leads
+* 👨‍💼 **Portal de Agentes**: Dashboard personalizado para agentes inmobiliarios
+* 📊 **Panel de Administración**: Herramientas de gestión y análisis
+* 🤖 **IA Integrada**: Recomendaciones inteligentes con Gemini AI
+* 📱 **Responsive Design**: Optimizado para móviles y tablets
+* 💬 **Chatbot**: Asistente virtual para consultas
+* 📞 **Integración WhatsApp**: Comunicación directa con clientes
 
 ## 🚀 Despliegue en Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/halvarez22/inverland-new-portal)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/halvarez22/Inverlan_new_portal)
 
 ### Configuración Automática
 
 1. **Conecta tu repositorio** a Vercel desde GitHub
-2. **Configura las variables de entorno**:
-   - `GEMINI_API_KEY`: Tu clave de API de Google Gemini
+2. **Configura las variables de entorno**:  
+   * `GEMINI_API_KEY`: Tu clave de API de Google Gemini
 3. **Despliega**: Vercel detectará automáticamente la configuración
 
 ## 🛠️ Desarrollo Local
 
 ### Requisitos Previos
 
-- Node.js 18.x o superior
-- npm 9.x o superior
-- Clave API de Gemini (para funcionalidades de IA)
+* Node.js 18.x o superior
+* npm 9.x o superior
+* Clave API de Gemini (para funcionalidades de IA)
 
 ### Instalación
 
-1. **Clona el repositorio**:
+1. **Clona el repositorio**:  
    ```bash
-   git clone https://github.com/halvarez22/inverland-new-portal.git
-   cd inverland-new-portal
+   git clone https://github.com/halvarez22/Inverlan_new_portal.git
+   cd Inverlan_new_portal
    ```
 
-2. **Instala las dependencias**:
+2. **Instala las dependencias**:  
    ```bash
    npm install
    ```
 
-3. **Configura las variables de entorno**:
+3. **Configura las variables de entorno**:  
    ```bash
    cp .env.example .env.local
    ```
    Edita `.env.local` y configura tu `GEMINI_API_KEY`
 
-4. **Inicia el servidor de desarrollo**:
+4. **Inicia el servidor de desarrollo**:  
    ```bash
    npm run dev
    ```
 
-5. **Abre tu navegador** en `http://localhost:5173`
+5. **Abre tu navegador** en `http://localhost:3000`
 
 ## 📦 Scripts Disponibles
 
@@ -94,31 +94,31 @@ npm run preview  # Vista previa de la construcción
 
 ## 🔧 Tecnologías Utilizadas
 
-- **Frontend**: React 19, TypeScript, Vite
-- **Styling**: Tailwind CSS
-- **IA**: Google Gemini AI
-- **Despliegue**: Vercel
-- **Gestión de Estado**: React Context API
+* **Frontend**: React 19, TypeScript, Vite
+* **Styling**: Tailwind CSS
+* **IA**: Google Gemini AI
+* **Despliegue**: Vercel
+* **Gestión de Estado**: React Context API
 
 ## 📱 Funcionalidades por Rol
 
 ### 👤 Usuario General
-- Navegación de propiedades
-- Búsqueda inteligente con IA
-- Contacto directo
-- Chatbot de consultas
+* Navegación de propiedades
+* Búsqueda inteligente con IA
+* Contacto directo
+* Chatbot de consultas
 
 ### 👨‍💼 Agente Inmobiliario
-- Portal personalizado
-- Gestión de propiedades asignadas
-- Seguimiento de clientes
-- Herramientas de análisis
+* Portal personalizado
+* Gestión de propiedades asignadas
+* Seguimiento de clientes
+* Herramientas de análisis
 
 ### 👑 Administrador
-- Panel de administración completo
-- Gestión de usuarios
-- Análisis avanzados
-- Configuración del sistema
+* Panel de administración completo
+* Gestión de usuarios
+* Análisis avanzados
+* Configuración del sistema
 
 ## 🔐 Variables de Entorno
 
