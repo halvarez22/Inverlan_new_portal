@@ -4,13 +4,13 @@ const AboutPage: React.FC = () => {
     return (
         <div className="bg-white">
             {/* Hero Section */}
-            <section className="relative py-12 sm:py-16 md:py-20 bg-gradient-to-br from-inverland-dark to-inverland-blue text-white">
+            <section className="relative py-12 sm:py-16 md:py-20 bg-gradient-to-br from-inverland-black to-inverland-blue text-inverland-off-white">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center max-w-4xl mx-auto">
                         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 leading-tight">
                             Sobre Nosotros
                         </h1>
-                        <p className="text-lg sm:text-xl md:text-2xl text-gray-200 leading-relaxed px-2">
+                        <p className="text-lg sm:text-xl md:text-2xl text-inverland-light-blue leading-relaxed px-2">
                             En Inverland, entendemos que encontrar el lugar perfecto para llamar <strong>hogar</strong> es un paso crucial en la vida de cada persona.
                         </p>
                     </div>
@@ -22,7 +22,7 @@ const AboutPage: React.FC = () => {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-6xl mx-auto">
                         <div className="text-center mb-8 sm:mb-12">
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-inverland-dark mb-6 sm:mb-8 font-heading">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-inverland-black mb-6 sm:mb-8 font-heading">
                                 Nuestra Misión
                             </h2>
                         </div>

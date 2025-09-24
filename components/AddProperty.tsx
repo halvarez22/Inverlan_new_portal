@@ -92,6 +92,7 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
     const [videoFiles, setVideoFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [videoPreviews, setVideoPreviews] = useState<string[]>([]);
+    const [mainPhotoIndex, setMainPhotoIndex] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -128,10 +129,22 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
             if (fileType === 'image') {
-                setImageFiles(prev => [...prev, ...files]);
-                // FIX: Cast file to File type for URL.createObjectURL.
-                const newPreviews = files.map(file => URL.createObjectURL(file as File));
-                setImagePreviews(prev => [...prev, ...newPreviews]);
+                // Verificar límite de 10 fotos por propiedad
+                const currentImageCount = imageFiles.length;
+                const newFilesCount = files.length;
+                const totalCount = currentImageCount + newFilesCount;
+                
+                if (totalCount > 10) {
+                    alert(`Máximo 10 fotos por propiedad. Actualmente tienes ${currentImageCount} fotos y estás intentando agregar ${newFilesCount}. Solo se agregarán ${10 - currentImageCount} fotos.`);
+                    const allowedFiles = files.slice(0, 10 - currentImageCount);
+                    setImageFiles(prev => [...prev, ...allowedFiles]);
+                    const newPreviews = allowedFiles.map(file => URL.createObjectURL(file as File));
+                    setImagePreviews(prev => [...prev, ...newPreviews]);
+                } else {
+                    setImageFiles(prev => [...prev, ...files]);
+                    const newPreviews = files.map(file => URL.createObjectURL(file as File));
+                    setImagePreviews(prev => [...prev, ...newPreviews]);
+                }
             } else {
                 setVideoFiles(prev => [...prev, ...files]);
                 // FIX: Cast file to File type for URL.createObjectURL.
@@ -145,10 +158,21 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         if (fileType === 'image') {
             setImageFiles(prev => prev.filter((_, i) => i !== index));
             setImagePreviews(prev => prev.filter((_, i) => i !== index));
+            
+            // Ajustar el índice de la foto principal si es necesario
+            if (index === mainPhotoIndex) {
+                setMainPhotoIndex(0); // Volver a la primera foto
+            } else if (index < mainPhotoIndex) {
+                setMainPhotoIndex(prev => prev - 1); // Ajustar índice
+            }
         } else {
             setVideoFiles(prev => prev.filter((_, i) => i !== index));
             setVideoPreviews(prev => prev.filter((_, i) => i !== index));
         }
+    };
+
+    const setMainPhoto = (index: number) => {
+        setMainPhotoIndex(index);
     };
 
     const handleGenerateDescription = async () => {
@@ -192,7 +216,8 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                 ...(formData as any), // Cast to any to handle optional number fields
                 location: locationString,
                 images,
-                videos
+                videos,
+                mainPhotoIndex: mainPhotoIndex
             };
             
             addProperty(newProperty);
@@ -271,18 +296,120 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                     <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
                         <legend className="text-xl font-bold px-2 text-inverland-dark">Características</legend>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                            <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
-                            <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
-                            <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado" value={formData.halfBathrooms} onChange={handleInputChange}/>
-                            <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
-                            <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
-                            <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
-                            <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
-                            <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
-                            <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
-                            <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
-                            <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
-                            <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
+                            {/* Campos para CASAS */}
+                            {formData.type === 'Casa' && (
+                                <>
+                                    <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                    <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                    <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado" value={formData.halfBathrooms} onChange={handleInputChange}/>
+                                    <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                    <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                    <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                    <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                                    <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
+                                    <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                </>
+                            )}
+
+                            {/* Campos para DEPARTAMENTOS */}
+                            {formData.type === 'Departamento' && (
+                                <>
+                                    <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                    <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                    <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado" value={formData.halfBathrooms} onChange={handleInputChange}/>
+                                    <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                    <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                    <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                                    <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                                    <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                    <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
+                                </>
+                            )}
+
+                            {/* Campos para TERRENOS */}
+                            {formData.type === 'Terreno' && (
+                                <>
+                                    <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                    <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                                    <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
+                                </>
+                            )}
+
+                            {/* Campos para OFICINAS */}
+                            {formData.type === 'Oficina' && (
+                                <>
+                                    <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                    <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                    <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                                    <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                                    <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                    <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
+                                </>
+                            )}
+
+                            {/* Campos para LOCALES COMERCIALES */}
+                            {formData.type === 'Local Comercial' && (
+                                <>
+                                    <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                    <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                    <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                                    <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                                    <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                    <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
+                                </>
+                            )}
+
+                            {/* Campos para BODEGAS INDUSTRIALES */}
+                            {formData.type === 'Bodega Industrial' && (
+                                <>
+                                    <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                    <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                    <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                    <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                </>
+                            )}
+
+                            {/* Campos para LOFTS */}
+                            {formData.type === 'Loft' && (
+                                <>
+                                    <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                    <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                    <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                    <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                    <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                                    <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                                    <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                    <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
+                                </>
+                            )}
+
+                            {/* Campos para VILLAS */}
+                            {formData.type === 'Villa' && (
+                                <>
+                                    <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                    <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                    <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado" value={formData.halfBathrooms} onChange={handleInputChange}/>
+                                    <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                    <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                    <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                    <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                                    <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
+                                    <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                </>
+                            )}
+
+                            {/* Campos para HACIENDAS */}
+                            {formData.type === 'Hacienda' && (
+                                <>
+                                    <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                    <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                    <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                    <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                    <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                                    <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
+                                    <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                </>
+                            )}
                         </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <InputField label="Clave interna" name="internalKey" placeholder="Ej. DPTO123" value={formData.internalKey} onChange={handleInputChange} />
@@ -343,16 +470,60 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                     <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
                         <legend className="text-xl font-bold px-2 text-inverland-dark">Multimedia</legend>
                         <div>
-                            <label htmlFor="images" className="block text-sm font-medium text-gray-700">Imágenes</label>
-                            <input type="file" name="images" id="images" multiple accept="image/*" onChange={(e) => handleFileChange(e, 'image')} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-inverland-green/10 file:text-inverland-green hover:file:bg-inverland-green/20"/>
+                            <label htmlFor="images" className="block text-sm font-medium text-gray-700">
+                                Imágenes 
+                                <span className="text-sm text-gray-500 ml-2">
+                                    ({imageFiles.length}/10 fotos)
+                                </span>
+                            </label>
+                            <input 
+                                type="file" 
+                                name="images" 
+                                id="images" 
+                                multiple 
+                                accept="image/*" 
+                                onChange={(e) => handleFileChange(e, 'image')} 
+                                disabled={imageFiles.length >= 10}
+                                className={`mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-inverland-blue/10 file:text-inverland-blue hover:file:bg-inverland-blue/20 ${imageFiles.length >= 10 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            />
+                            {imageFiles.length >= 10 && (
+                                <p className="mt-2 text-sm text-amber-600">
+                                    ✅ Máximo de 10 fotos alcanzado. Elimina alguna foto para agregar más.
+                                </p>
+                            )}
                             <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                                 {imagePreviews.map((src, index) => (
                                     <div key={index} className="relative group">
-                                        <img src={src} alt={`Preview ${index}`} className="w-full h-24 object-cover rounded-lg"/>
-                                        <button type="button" onClick={() => removeFile(index, 'image')} className="absolute top-0 right-0 m-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
+                                        <img 
+                                            src={src} 
+                                            alt={`Preview ${index}`} 
+                                            className={`w-full h-24 object-cover rounded-lg cursor-pointer transition-all duration-200 ${
+                                                index === mainPhotoIndex 
+                                                    ? 'ring-4 ring-inverland-blue ring-opacity-75 shadow-lg' 
+                                                    : 'hover:shadow-md'
+                                            }`}
+                                            onClick={() => setMainPhoto(index)}
+                                        />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeFile(index, 'image')} 
+                                            className="absolute top-0 right-0 m-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            &times;
+                                        </button>
+                                        {index === mainPhotoIndex && (
+                                            <div className="absolute bottom-0 left-0 right-0 bg-inverland-blue text-white text-xs text-center py-1 rounded-b-lg">
+                                                Foto Principal
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
+                            {imagePreviews.length > 0 && (
+                                <p className="mt-2 text-sm text-gray-600">
+                                    💡 Haz clic en cualquier foto para establecerla como foto principal
+                                </p>
+                            )}
                         </div>
                          <div>
                             <label htmlFor="videos" className="block text-sm font-medium text-gray-700">Videos</label>

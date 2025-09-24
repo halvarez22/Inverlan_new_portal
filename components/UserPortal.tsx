@@ -62,12 +62,12 @@ const ManagementCard: React.FC<ManagementCardProps> = ({ title, description, ico
             onClick={onClick}
             className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out group text-left p-4 md:p-6 flex flex-col items-start cursor-pointer"
         >
-            <div className="bg-inverland-green p-4 rounded-lg mb-4 group-hover:bg-inverland-blue transition-colors duration-300">
+            <div className="bg-inverland-blue p-4 rounded-lg mb-4 group-hover:bg-inverland-light-blue transition-colors duration-300">
                 {icon}
             </div>
-            <h3 className="text-xl font-bold text-inverland-dark mb-2">{title}</h3>
+            <h3 className="text-xl font-bold text-inverland-black mb-2">{title}</h3>
             <p className="text-gray-600 flex-grow">{description}</p>
-             <span className="mt-4 text-inverland-green font-semibold group-hover:text-inverland-blue transition-colors duration-300">
+             <span className="mt-4 text-inverland-blue font-semibold group-hover:text-inverland-light-blue transition-colors duration-300">
                 Acceder &rarr;
             </span>
         </button>
@@ -81,7 +81,7 @@ const UserPortal: React.FC<UserPortalProps> = ({ onNavigate }) => {
         return (
             <section className="py-16 md:py-24 bg-gray-100">
                 <div className="container mx-auto px-4 sm:px-6 text-center">
-                    <h2 className="text-2xl font-bold text-inverland-dark">Por favor, inicia sesión para ver tu portal.</h2>
+                    <h2 className="text-2xl font-bold text-inverland-black">Por favor, inicia sesión para ver tu portal.</h2>
                 </div>
             </section>
         );
@@ -90,7 +90,7 @@ const UserPortal: React.FC<UserPortalProps> = ({ onNavigate }) => {
     return (
         <section className="py-16 md:py-24 bg-gray-100 min-h-screen">
             <div className="container mx-auto px-4 sm:px-6">
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-inverland-dark mb-4">
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-inverland-black mb-4">
                     Portal de Gestión
                 </h2>
                 <p className="text-lg text-gray-600 mb-12">Bienvenido, {currentUser.username}. Desde aquí puedes administrar la plataforma.</p>

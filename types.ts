@@ -80,6 +80,7 @@ export interface Property {
     longitude: number;
     images: string[];
     videos?: string[];
+    mainPhotoIndex?: number;
     amenities: string[];
     status: 'For Sale' | 'Sold' | 'Rented';
     agentId?: string | null;

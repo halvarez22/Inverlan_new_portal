@@ -4,35 +4,35 @@ import React from 'react';
 import { NAV_LINKS } from '../constants';
 
 const SocialIcon: React.FC<{ href: string, children: React.ReactNode }> = ({ href, children }) => (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-inverland-green transition-colors duration-300">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors duration-300">
         {children}
     </a>
 );
 
 const Footer: React.FC = () => {
     return (
-        <footer className="bg-gradient-to-br from-inverland-dark to-inverland-primary text-white">
+        <footer className="bg-gradient-to-br from-inverland-black to-inverland-blue text-inverland-off-white">
             <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
                     <div className="col-span-1 sm:col-span-2 md:col-span-1">
                         <div className="flex items-center space-x-2 mb-4">
                             <img src="/images/logo.png" alt="Inverland Logo" className="w-14 h-14 object-contain" />
                         </div>
-                        <p className="text-inverland-light font-body leading-relaxed">Transformando el panorama inmobiliario de México con proyectos innovadores y de alta calidad.</p>
+                        <p className="text-inverland-off-white font-body leading-relaxed">Transformando el panorama inmobiliario de México con proyectos innovadores y de alta calidad.</p>
                     </div>
                     <div>
                         <h3 className="font-bold text-lg mb-4">Navegación</h3>
                         <ul className="space-y-2">
                             {NAV_LINKS.map(link => (
-                                <li key={link.name}><a href={link.href} className="text-gray-400 hover:text-white transition-colors">{link.name}</a></li>
+                                <li key={link.name}><a href={link.href} className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">{link.name}</a></li>
                             ))}
                         </ul>
                     </div>
                     <div>
                         <h3 className="font-bold text-lg mb-4">Legal</h3>
                         <ul className="space-y-2">
-                            <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Aviso de Privacidad</a></li>
-                            <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Términos y Condiciones</a></li>
+                            <li><a href="#" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">Aviso de Privacidad</a></li>
+                            <li><a href="#" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">Términos y Condiciones</a></li>
                         </ul>
                     </div>
                     <div>
@@ -44,7 +44,7 @@ const Footer: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                <div className="mt-8 pt-8 border-t border-inverland-light-blue text-center text-inverland-light-blue">
                     <p>&copy; {new Date().getFullYear()} Grupo Inverland. Todos los derechos reservados.</p>
                 </div>
             </div>

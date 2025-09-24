@@ -23,7 +23,7 @@ const Hero: React.FC<HeroProps> = ({ onSearch, isSearching }) => {
 
     return (
         <section id="home" className="relative h-screen min-h-[600px] md:min-h-[700px] flex items-center justify-center text-white">
-            <div className="absolute inset-0 bg-inverland-dark opacity-60 z-10"></div>
+            <div className="absolute inset-0 bg-inverland-black opacity-60 z-10"></div>
             <img src="/images/portada.jpeg" alt="Portal Inverland - Tu mejor inversión está aquí" className="absolute inset-0 w-full h-full object-cover" />
             
             <div className="relative z-20 text-center px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
@@ -40,13 +40,13 @@ const Hero: React.FC<HeroProps> = ({ onSearch, isSearching }) => {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Ej: Casa con alberca en Querétaro"
-                            className="w-full flex-grow p-3 sm:p-4 rounded-xl border border-inverland-gray/30 bg-white text-inverland-dark text-sm sm:text-base focus:ring-2 focus:ring-inverland-primary focus:border-inverland-primary outline-none min-h-[48px] font-body"
+                            className="w-full flex-grow p-3 sm:p-4 rounded-xl border border-inverland-light-blue/30 bg-white text-inverland-black text-sm sm:text-base focus:ring-2 focus:ring-inverland-blue focus:border-inverland-blue outline-none min-h-[48px] font-body"
                             aria-label="Búsqueda de propiedades"
                         />
                         <button 
                             type="submit" 
                             disabled={isSearching}
-                            className="w-full sm:w-auto bg-gradient-to-r from-inverland-primary to-inverland-secondary text-white font-bold p-3 sm:p-4 rounded-xl flex items-center justify-center hover:from-inverland-secondary hover:to-inverland-primary transition-all duration-300 transform hover:scale-105 shadow-inverland disabled:bg-inverland-gray disabled:scale-100 disabled:cursor-not-allowed min-h-[48px] whitespace-nowrap font-heading"
+                            className="w-full sm:w-auto bg-gradient-to-r from-inverland-blue to-inverland-light-blue text-inverland-off-white font-bold p-3 sm:p-4 rounded-xl flex items-center justify-center hover:from-inverland-light-blue hover:to-inverland-aqua transition-all duration-300 transform hover:scale-105 shadow-inverland disabled:bg-inverland-light-blue disabled:scale-100 disabled:cursor-not-allowed min-h-[48px] whitespace-nowrap font-heading"
                         >
                             {isSearching ? (
                                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>

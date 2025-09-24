@@ -11,26 +11,29 @@
         theme: {
           extend: {
             colors: {
-              // Colores Primarios Inverland
-              'inverland-primary': '#083d5c',      // Azul marino principal
-              'inverland-secondary': '#1E3A8A',    // Azul corporativo
-              'inverland-accent': '#059669',       // Verde esmeralda
-              'inverland-gold': '#D97706',         // Dorado corporativo
+              // Paleta Oficial Inverland - Brand Manual
+              'inverland-blue': '#0c3c5b',         // BLUE - Pantone /4C - RGB: 12, 60, 91
+              'inverland-light-blue': '#9fb0c2',   // LIGHT BLUE - Pantone /36c - RGB: 159, 176, 194
+              'inverland-aqua': '#6acfec',         // AQUA - Pantone 0821c - RGB: 106, 207, 236
+              'inverland-off-white': '#f3f2f2',    // OFF WHITE - Pantone light g - RGB: 243, 242, 242
+              'inverland-black': '#000000',         // BLACK - Pantone black - RGB: 0, 0, 0
               
-              // Colores Neutros
-              'inverland-dark': '#0F172A',         // Negro corporativo
-              'inverland-gray': '#64748B',         // Gris corporativo
-              'inverland-light': '#F8FAFC',        // Gris claro
+              // Alias para compatibilidad y uso semántico
+              'inverland-primary': '#0c3c5b',      // Azul principal (BLUE)
+              'inverland-secondary': '#9fb0c2',    // Azul claro (LIGHT BLUE)
+              'inverland-accent': '#6acfec',       // Aqua (AQUA)
+              'inverland-light': '#f3f2f2',        // Blanco off (OFF WHITE)
+              'inverland-dark': '#000000',          // Negro (BLACK)
               
-              // Colores de Estado
-              'inverland-success': '#10B981',      // Verde éxito
-              'inverland-warning': '#F59E0B',      // Amarillo advertencia
-              'inverland-error': '#EF4444',        // Rojo error
-              'inverland-info': '#3B82F6',         // Azul información
+              // Colores de Estado usando la paleta oficial
+              'inverland-success': '#6acfec',      // Aqua para éxito
+              'inverland-warning': '#9fb0c2',      // Light Blue para advertencia
+              'inverland-error': '#0c3c5b',        // Blue para error (más suave)
+              'inverland-info': '#6acfec',         // Aqua para información
               
-              // Alias para compatibilidad
-              'inverland-green': '#083d5c',
-              'inverland-blue': '#1E3A8A',
+              // Alias legacy para compatibilidad
+              'inverland-green': '#0c3c5b',        // Mapeado al azul principal
+              'inverland-gray': '#9fb0c2',         // Mapeado al light blue
             },
             fontFamily: {
               sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -61,8 +64,9 @@
               '3xl': '1.5rem',
             },
             boxShadow: {
-              'inverland': '0 4px 6px -1px rgba(8, 61, 92, 0.1), 0 2px 4px -1px rgba(8, 61, 92, 0.06)',
-              'inverland-lg': '0 10px 15px -3px rgba(8, 61, 92, 0.1), 0 4px 6px -2px rgba(8, 61, 92, 0.05)',
+              'inverland': '0 4px 6px -1px rgba(12, 60, 91, 0.1), 0 2px 4px -1px rgba(12, 60, 91, 0.06)',
+              'inverland-lg': '0 10px 15px -3px rgba(12, 60, 91, 0.1), 0 4px 6px -2px rgba(12, 60, 91, 0.05)',
+              'inverland-aqua': '0 4px 6px -1px rgba(106, 207, 236, 0.1), 0 2px 4px -1px rgba(106, 207, 236, 0.06)',
             }
           }
         }

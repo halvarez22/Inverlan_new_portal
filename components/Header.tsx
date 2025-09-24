@@ -35,7 +35,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout, onNavClick, onOpe
     };
 
     return (
-        <header className="bg-gradient-to-r from-inverland-dark/95 to-inverland-primary/95 backdrop-blur-sm sticky top-0 z-50 shadow-inverland-lg border-b border-inverland-primary/20">
+        <header className="bg-gradient-to-r from-inverland-black/95 to-inverland-blue/95 backdrop-blur-sm sticky top-0 z-50 shadow-inverland-lg border-b border-inverland-blue/20">
             <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-3 md:py-4">
                 <div className="flex items-center justify-between">
                     <button onClick={() => onNavigate('home')} aria-label="Go to homepage" className="flex-shrink-0">
@@ -44,11 +44,11 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout, onNavClick, onOpe
                     
                     {!isAuthenticated && (
                         <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-                            <button onClick={() => onNavigate('home')} className="text-gray-300 hover:text-white transition-colors duration-300 font-medium text-sm lg:text-base">
+                            <button onClick={() => onNavigate('home')} className="text-inverland-off-white hover:text-inverland-aqua transition-colors duration-300 font-medium text-sm lg:text-base">
                                 Inicio
                             </button>
                             {NAV_LINKS.filter(link => link.name !== 'Inicio').map((link) => (
-                                <button key={link.name} onClick={() => onNavClick(link.href)} className="text-gray-300 hover:text-white transition-colors duration-300 font-medium text-sm lg:text-base">
+                                <button key={link.name} onClick={() => onNavClick(link.href)} className="text-inverland-off-white hover:text-inverland-aqua transition-colors duration-300 font-medium text-sm lg:text-base">
                                     {link.name}
                                 </button>
                             ))}
@@ -58,25 +58,25 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout, onNavClick, onOpe
                     <div className="hidden lg:flex items-center space-x-3 xl:space-x-4">
                         {isAuthenticated ? (
                             <>
-                                <button onClick={() => onNavigate('home')} className="text-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-secondary/20 transition-all duration-300 font-heading">
+                                <button onClick={() => onNavigate('home')} className="text-inverland-off-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-light-blue/20 transition-all duration-300 font-heading">
                                     Inicio
                                 </button>
-                                <button onClick={() => onNavigate('userPortal')} className="text-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-secondary/20 transition-all duration-300 font-heading">
+                                <button onClick={() => onNavigate('userPortal')} className="text-inverland-off-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-light-blue/20 transition-all duration-300 font-heading">
                                     Portal
                                 </button>
                                 {currentUser?.role === 'admin' && (
-                                    <button onClick={() => onNavigate('dashboard')} className="text-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-secondary/20 transition-all duration-300 font-heading">
+                                    <button onClick={() => onNavigate('dashboard')} className="text-inverland-off-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-light-blue/20 transition-all duration-300 font-heading">
                                         Dashboard
                                     </button>
                                 )}
-                                <span className="text-inverland-light font-medium whitespace-nowrap font-body">Hola, {currentUser?.username}</span>
-                                <button onClick={handleLogoutClick} className="text-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-secondary/20 transition-all duration-300 font-heading">
+                                <span className="text-inverland-off-white font-medium whitespace-nowrap font-body">Hola, {currentUser?.username}</span>
+                                <button onClick={handleLogoutClick} className="text-inverland-off-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-light-blue/20 transition-all duration-300 font-heading">
                                     Logout
                                 </button>
                             </>
                         ) : (
                             <>
-                                <button onClick={(e) => handleNavLinkClick(e, 'login')} className="bg-gradient-to-r from-inverland-primary to-inverland-secondary text-white font-bold px-4 py-2 rounded-xl hover:from-inverland-secondary hover:to-inverland-primary transition-all duration-300 transform hover:scale-105 shadow-inverland text-sm lg:text-base font-heading">
+                                <button onClick={(e) => handleNavLinkClick(e, 'login')} className="bg-gradient-to-r from-inverland-blue to-inverland-light-blue text-inverland-off-white font-bold px-4 py-2 rounded-xl hover:from-inverland-light-blue hover:to-inverland-aqua transition-all duration-300 transform hover:scale-105 shadow-inverland text-sm lg:text-base font-heading">
                                     Ingresar
                                 </button>
                             </>
@@ -85,10 +85,10 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout, onNavClick, onOpe
 
                     {/* Mobile menu button */}
                     <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white lg:hidden flex-shrink-0 p-2" aria-label="Toggle Menu">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
+                            </svg>
+                        </button>
                 </div>
 
                 {/* Mobile menu */}
