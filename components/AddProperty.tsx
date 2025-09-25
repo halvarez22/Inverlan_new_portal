@@ -147,7 +147,28 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                 // DEBUG: Mostrar valor original y parseado
                 console.log(`🔍 Coordenada ${name}:`, { original: value, parsed: parseFloat(value) });
                 
-                const numValue = parseFloat(value);
+                let numValue = parseFloat(value);
+                
+                // CORRECCIÓN: Validar y corregir coordenadas automáticamente
+                if (name === 'latitude') {
+                    // Latitud debe estar entre -90 y 90
+                    if (numValue < -90 || numValue > 90) {
+                        console.warn(`⚠️ Latitud fuera de rango: ${numValue}, corrigiendo a 0`);
+                        numValue = 0;
+                    }
+                } else if (name === 'longitude') {
+                    // Longitud debe estar entre -180 y 180
+                    if (numValue < -180 || numValue > 180) {
+                        console.warn(`⚠️ Longitud fuera de rango: ${numValue}, corrigiendo a 0`);
+                        numValue = 0;
+                    }
+                    // CORRECCIÓN ESPECÍFICA: Si la longitud es muy pequeña (como -10), probablemente falta el 1
+                    if (numValue > -20 && numValue < 0) {
+                        console.warn(`⚠️ Longitud sospechosa: ${numValue}, posiblemente falta el 1`);
+                        // No corregir automáticamente, solo advertir
+                    }
+                }
+                
                 if (!isNaN(numValue)) {
                     setFormData(prev => ({ ...prev, [name]: numValue }));
                 } else {
