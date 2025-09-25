@@ -7,6 +7,18 @@ interface SimplePropertyMapProps {
 }
 
 const SimplePropertyMap: React.FC<SimplePropertyMapProps> = ({ lat, lng, popupText }) => {
+    // DEBUG: Mostrar coordenadas ANTES de validación
+    console.log('🔍 SimplePropertyMap recibió:', { lat, lng, popupText });
+    console.log('🔍 Tipos:', { latType: typeof lat, lngType: typeof lng });
+    console.log('🔍 Validaciones:', { 
+        isNaN_lat: isNaN(lat), 
+        isNaN_lng: isNaN(lng), 
+        lat_zero: lat === 0, 
+        lng_zero: lng === 0,
+        lat_range: lat < -90 || lat > 90,
+        lng_range: lng < -180 || lng > 180
+    });
+    
     // Validate coordinates - más estricto para evitar mapas incorrectos
     if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0 || 
         lat < -90 || lat > 90 || lng < -180 || lng > 180) {
