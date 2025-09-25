@@ -39,15 +39,17 @@ export const CampaignProvider: React.FC<{ children: ReactNode }> = ({ children }
                             clientService.getAllClients()
                         ]);
                         
-                        // Solo migrar si TODAS las colecciones están vacías
-                        if (firebaseProperties.length === 0 && firebaseClients.length === 0) {
-                            console.log("First time setup - migrating sample campaigns to Firebase");
+                        // Solo migrar en desarrollo local, NO en producción
+                        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                        
+                        if (isDevelopment && firebaseProperties.length === 0 && firebaseClients.length === 0) {
+                            console.log("Development environment - migrating sample campaigns to Firebase");
                             for (const campaign of SAMPLE_CAMPAIGNS) {
                                 await campaignService.addCampaign(campaign);
                             }
                             console.log("Sample campaigns migrated to Firebase");
                         } else {
-                            console.log("Firebase has existing data - skipping campaign migration");
+                            console.log("Production environment or existing data - skipping campaign migration");
                         }
                     } catch (migrationError) {
                         console.warn("Failed to migrate sample campaigns to Firebase:", migrationError);

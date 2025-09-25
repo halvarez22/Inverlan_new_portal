@@ -39,15 +39,17 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                             campaignService.getAllCampaigns()
                         ]);
                         
-                        // Solo migrar si TODAS las colecciones están vacías
-                        if (firebaseProperties.length === 0 && firebaseCampaigns.length === 0) {
-                            console.log("First time setup - migrating sample clients to Firebase");
+                        // Solo migrar en desarrollo local, NO en producción
+                        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                        
+                        if (isDevelopment && firebaseProperties.length === 0 && firebaseCampaigns.length === 0) {
+                            console.log("Development environment - migrating sample clients to Firebase");
                             for (const client of SAMPLE_CLIENTS) {
                                 await clientService.addClient(client);
                             }
                             console.log("Sample clients migrated to Firebase");
                         } else {
-                            console.log("Firebase has existing data - skipping client migration");
+                            console.log("Production environment or existing data - skipping client migration");
                         }
                     } catch (migrationError) {
                         console.warn("Failed to migrate sample clients to Firebase:", migrationError);

@@ -18,6 +18,14 @@ const DataMigration: React.FC = () => {
 
     useEffect(() => {
         const checkAndMigrate = async () => {
+            // Solo mostrar migración en desarrollo local, NO en producción
+            const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            
+            if (!isDevelopment) {
+                console.log('Production environment - skipping migration UI');
+                return;
+            }
+
             try {
                 // Verificar si hay datos en Firebase
                 const [firebaseProperties, firebaseClients, firebaseCampaigns] = await Promise.all([

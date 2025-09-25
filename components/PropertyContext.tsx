@@ -34,15 +34,17 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
                             campaignService.getAllCampaigns()
                         ]);
                         
-                        // Solo migrar si TODAS las colecciones están vacías
-                        if (firebaseClients.length === 0 && firebaseCampaigns.length === 0) {
-                            console.log("First time setup - migrating sample data to Firebase");
+                        // Solo migrar en desarrollo local, NO en producción
+                        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                        
+                        if (isDevelopment && firebaseClients.length === 0 && firebaseCampaigns.length === 0) {
+                            console.log("Development environment - migrating sample data to Firebase");
                             for (const property of SAMPLE_PROPERTIES) {
                                 await propertyService.addProperty(property);
                             }
                             console.log("Sample properties migrated to Firebase");
                         } else {
-                            console.log("Firebase has existing data - skipping migration");
+                            console.log("Production environment or existing data - skipping migration");
                         }
                     } catch (migrationError) {
                         console.warn("Failed to migrate sample properties to Firebase:", migrationError);
