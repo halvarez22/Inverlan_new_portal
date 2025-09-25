@@ -144,6 +144,9 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         if (isNumeric) {
             // Para coordenadas, asegurar que sean números válidos
             if (name === 'latitude' || name === 'longitude') {
+                // DEBUG: Mostrar valor original y parseado
+                console.log(`🔍 Coordenada ${name}:`, { original: value, parsed: parseFloat(value) });
+                
                 const numValue = parseFloat(value);
                 if (!isNaN(numValue)) {
                     setFormData(prev => ({ ...prev, [name]: numValue }));
