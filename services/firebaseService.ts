@@ -58,8 +58,13 @@ export const propertyService = {
   // Add new property
   async addProperty(property: Omit<Property, 'id'>): Promise<string> {
     try {
+      // Limpiar valores undefined antes de enviar a Firebase
+      const cleanProperty = Object.fromEntries(
+        Object.entries(property).filter(([_, value]) => value !== undefined)
+      );
+      
       const docRef = await addDoc(collection(db, PROPERTIES_COLLECTION), {
-        ...property,
+        ...cleanProperty,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -73,9 +78,14 @@ export const propertyService = {
   // Update property
   async updateProperty(id: string, property: Partial<Property>): Promise<void> {
     try {
+      // Limpiar valores undefined antes de enviar a Firebase
+      const cleanProperty = Object.fromEntries(
+        Object.entries(property).filter(([_, value]) => value !== undefined)
+      );
+      
       const docRef = doc(db, PROPERTIES_COLLECTION, id);
       await updateDoc(docRef, {
-        ...property,
+        ...cleanProperty,
         updatedAt: serverTimestamp()
       });
     } catch (error) {
@@ -136,8 +146,13 @@ export const clientService = {
   // Add new client
   async addClient(client: Omit<Client, 'id'>): Promise<string> {
     try {
+      // Limpiar valores undefined antes de enviar a Firebase
+      const cleanClient = Object.fromEntries(
+        Object.entries(client).filter(([_, value]) => value !== undefined)
+      );
+      
       const docRef = await addDoc(collection(db, CLIENTS_COLLECTION), {
-        ...client,
+        ...cleanClient,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -151,9 +166,14 @@ export const clientService = {
   // Update client
   async updateClient(id: string, client: Partial<Client>): Promise<void> {
     try {
+      // Limpiar valores undefined antes de enviar a Firebase
+      const cleanClient = Object.fromEntries(
+        Object.entries(client).filter(([_, value]) => value !== undefined)
+      );
+      
       const docRef = doc(db, CLIENTS_COLLECTION, id);
       await updateDoc(docRef, {
-        ...client,
+        ...cleanClient,
         updatedAt: serverTimestamp()
       });
     } catch (error) {
@@ -214,8 +234,13 @@ export const campaignService = {
   // Add new campaign
   async addCampaign(campaign: Omit<Campaign, 'id'>): Promise<string> {
     try {
+      // Limpiar valores undefined antes de enviar a Firebase
+      const cleanCampaign = Object.fromEntries(
+        Object.entries(campaign).filter(([_, value]) => value !== undefined)
+      );
+      
       const docRef = await addDoc(collection(db, CAMPAIGNS_COLLECTION), {
-        ...campaign,
+        ...cleanCampaign,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
@@ -229,9 +254,14 @@ export const campaignService = {
   // Update campaign
   async updateCampaign(id: string, campaign: Partial<Campaign>): Promise<void> {
     try {
+      // Limpiar valores undefined antes de enviar a Firebase
+      const cleanCampaign = Object.fromEntries(
+        Object.entries(campaign).filter(([_, value]) => value !== undefined)
+      );
+      
       const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
       await updateDoc(docRef, {
-        ...campaign,
+        ...cleanCampaign,
         updatedAt: serverTimestamp()
       });
     } catch (error) {
