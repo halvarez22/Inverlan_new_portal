@@ -22,10 +22,11 @@ const SinglePropertyMap: React.FC<SinglePropertyMapProps> = ({ lat, lng, popupTe
                 mapRef.current = null;
             }
 
-            // Validate coordinates
-            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+            // Validate coordinates - más estricto para evitar mapas incorrectos
+            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0 || 
+                lat < -90 || lat > 90 || lng < -180 || lng > 180) {
                 console.warn('Invalid coordinates:', { lat, lng });
-                setMapError('Coordenadas inválidas');
+                setMapError('Coordenadas no configuradas');
                 return;
             }
 

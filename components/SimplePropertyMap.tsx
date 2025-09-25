@@ -7,12 +7,14 @@ interface SimplePropertyMapProps {
 }
 
 const SimplePropertyMap: React.FC<SimplePropertyMapProps> = ({ lat, lng, popupText }) => {
-    // Validate coordinates
-    if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+    // Validate coordinates - más estricto para evitar mapas incorrectos
+    if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0 || 
+        lat < -90 || lat > 90 || lng < -180 || lng > 180) {
         return (
             <div style={{ height: '400px', width: '100%', borderRadius: '8px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <p className="text-gray-600 mb-2">⚠️ Coordenadas inválidas</p>
-                <p className="text-sm text-gray-500">Lat: {lat}, Lng: {lng}</p>
+                <p className="text-gray-600 mb-2">📍 Coordenadas no configuradas</p>
+                <p className="text-sm text-gray-500">Esta propiedad necesita coordenadas válidas para mostrar el mapa</p>
+                <p className="text-xs text-gray-400 mt-2">Lat: {lat}, Lng: {lng}</p>
             </div>
         );
     }

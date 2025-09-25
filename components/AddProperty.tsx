@@ -113,8 +113,8 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         crossStreet: '',
         zipCode: '',
         showExactLocation: true,
-        latitude: 19.4326,
-        longitude: -99.1332,
+        latitude: 0, // Coordenadas vacías por defecto
+        longitude: 0, // Coordenadas vacías por defecto
         amenities: [],
         status: 'For Sale',
         videos: [],
@@ -549,8 +549,41 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                             <InputField label="Esquina con" name="crossStreet" value={formData.crossStreet} onChange={handleInputChange} />
                          </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                             <InputField label="Latitud" name="latitude" type="number" required value={formData.latitude} onChange={handleInputChange} />
-                             <InputField label="Longitud" name="longitude" type="number" required value={formData.longitude} onChange={handleInputChange} />
+                             <div>
+                                 <label className="block text-sm font-medium text-gray-700">Latitud</label>
+                                 <input
+                                     type="number"
+                                     name="latitude"
+                                     value={formData.latitude || ''}
+                                     onChange={handleInputChange}
+                                     placeholder="Ej: 20.9674"
+                                     step="0.000001"
+                                     className="mt-1 block w-full input-style"
+                                 />
+                                 <p className="text-xs text-gray-500 mt-1">Coordenada norte-sur (-90 a 90)</p>
+                             </div>
+                             <div>
+                                 <label className="block text-sm font-medium text-gray-700">Longitud</label>
+                                 <input
+                                     type="number"
+                                     name="longitude"
+                                     value={formData.longitude || ''}
+                                     onChange={handleInputChange}
+                                     placeholder="Ej: -89.5926"
+                                     step="0.000001"
+                                     className="mt-1 block w-full input-style"
+                                 />
+                                 <p className="text-xs text-gray-500 mt-1">Coordenada este-oeste (-180 a 180)</p>
+                             </div>
+                         </div>
+                         <div className="bg-blue-50 p-4 rounded-lg">
+                             <h4 className="font-semibold text-blue-800 mb-2">📍 ¿Cómo obtener coordenadas?</h4>
+                             <p className="text-sm text-blue-700 mb-2">Puedes obtener las coordenadas exactas de varias formas:</p>
+                             <ul className="text-sm text-blue-600 space-y-1">
+                                 <li>• <strong>Google Maps:</strong> Click derecho en la ubicación → "¿Qué hay aquí?"</li>
+                                 <li>• <strong>Maps.app:</strong> Mantén presionado en la ubicación</li>
+                                 <li>• <strong>Coordenadas comunes:</strong> Mérida (20.9674, -89.5926), CDMX (19.4326, -99.1332)</li>
+                             </ul>
                          </div>
                          <div>
                             <label className="block text-sm font-medium text-gray-700">Mostrar ubicación exacta</label>
