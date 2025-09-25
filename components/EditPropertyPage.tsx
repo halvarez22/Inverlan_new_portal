@@ -3,6 +3,37 @@ import { Property } from '../types';
 import { PROPERTY_TYPES } from '../constants';
 import { useProperties } from './PropertyContext';
 
+// Función para comprimir imágenes (igual que en AddProperty)
+const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            // Calcular nuevas dimensiones manteniendo proporción
+            let { width, height } = img;
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Dibujar imagen redimensionada
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            // Convertir a DataURL con compresión
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressedDataUrl);
+        };
+        
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+    });
+};
+
 interface EditPropertyPageProps {
     onBack: () => void;
 }
@@ -93,6 +124,45 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
         setVideo360Url(e.target.value);
     };
 
+    // Función para manejar cambio de archivos de imagen
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            // Verificar límite de 10 fotos por propiedad
+            const currentImageCount = imageFiles.length + imagePreviews.length;
+            const newFilesCount = files.length;
+            const totalCount = currentImageCount + newFilesCount;
+            
+            if (totalCount > 10) {
+                alert(`Máximo 10 fotos por propiedad. Actualmente tienes ${currentImageCount} fotos y estás intentando agregar ${newFilesCount}. Solo se agregarán ${10 - currentImageCount} fotos.`);
+                const allowedFiles = files.slice(0, 10 - currentImageCount);
+                setImageFiles(prev => [...prev, ...allowedFiles]);
+                const newPreviews = allowedFiles.map(file => URL.createObjectURL(file as File));
+                setImagePreviews(prev => [...prev, ...newPreviews]);
+            } else {
+                setImageFiles(prev => [...prev, ...files]);
+                const newPreviews = files.map(file => URL.createObjectURL(file as File));
+                setImagePreviews(prev => [...prev, ...newPreviews]);
+            }
+        }
+    };
+    
+    const removeFile = (index: number) => {
+        setImageFiles(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+        
+        // Ajustar el índice de la foto principal si es necesario
+        if (index === mainPhotoIndex) {
+            setMainPhotoIndex(0); // Volver a la primera foto
+        } else if (index < mainPhotoIndex) {
+            setMainPhotoIndex(prev => prev - 1); // Ajustar índice
+        }
+    };
+
+    const setMainPhoto = (index: number) => {
+        setMainPhotoIndex(index);
+    };
+
     const handlePropertySelect = (property: Property) => {
         setSelectedProperty(property);
         setIsEditing(true);
@@ -153,13 +223,20 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
         setIsLoading(true);
 
         try {
+            // Comprimir nuevas imágenes antes de enviar a Firebase
+            const newImagePromises = imageFiles.map(file => compressImage(file, 800, 0.7));
+            const newImages = await Promise.all(newImagePromises);
+            
+            // Combinar imágenes existentes con las nuevas
+            const allImages = [...imagePreviews, ...newImages];
+
             const locationString = `${formData.city}, ${formData.state}`;
 
             const updatedProperty: Property = {
                 ...selectedProperty,
                 ...formData,
                 location: locationString,
-                images: imagePreviews, // Mantener imágenes existentes por ahora
+                images: allImages, // Imágenes existentes + nuevas comprimidas
                 videos: videoUrls, // URLs de YouTube
                 video360: video360Url, // URL del recorrido 360
                 mainPhotoIndex: mainPhotoIndex,
@@ -477,6 +554,78 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
                                             </div>
                                         </div>
                                     </div>
+                                </fieldset>
+
+                                {/* Imágenes */}
+                                <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
+                                    <legend className="text-xl font-bold px-2 text-inverland-black">Imágenes</legend>
+                                    
+                                    {/* Subir nuevas imágenes */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Agregar Nuevas Imágenes
+                                            <span className="text-sm text-gray-500 ml-2">
+                                                ({imageFiles.length + imagePreviews.length}/10 fotos)
+                                            </span>
+                                        </label>
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-inverland-blue file:text-white hover:file:bg-inverland-light-blue"
+                                        />
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            Máximo 10 fotos por propiedad. Las imágenes se comprimirán automáticamente.
+                                        </p>
+                                    </div>
+
+                                    {/* Vista previa de imágenes */}
+                                    {(imagePreviews.length > 0 || imageFiles.length > 0) && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Vista Previa de Imágenes
+                                            </label>
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                {imagePreviews.map((preview, index) => (
+                                                    <div key={index} className="relative group">
+                                                        <img
+                                                            src={preview}
+                                                            alt={`Preview ${index + 1}`}
+                                                            className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                                            <div className="opacity-0 group-hover:opacity-100 flex space-x-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setMainPhoto(index)}
+                                                                    className={`px-3 py-1 text-xs rounded ${
+                                                                        mainPhotoIndex === index 
+                                                                            ? 'bg-yellow-500 text-white' 
+                                                                            : 'bg-white text-gray-700 hover:bg-gray-100'
+                                                                    }`}
+                                                                >
+                                                                    {mainPhotoIndex === index ? '⭐ Principal' : '⭐ Principal'}
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeFile(index)}
+                                                                    className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                                                                >
+                                                                    🗑️
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        {mainPhotoIndex === index && (
+                                                            <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold">
+                                                                ⭐ Principal
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </fieldset>
 
                                 {/* Videos */}
