@@ -30,35 +30,39 @@ export const CampaignProvider: React.FC<{ children: ReactNode }> = ({ children }
                         console.warn("Failed to save to localStorage backup:", localError);
                     }
                 } else {
-                    // Si no hay campañas en Firebase, usar las de muestra
-                    setCampaigns(SAMPLE_CAMPAIGNS);
-                    // Solo migrar si Firebase está completamente vacío (primera instalación)
-                    try {
-                        const [firebaseProperties, firebaseClients] = await Promise.all([
-                            propertyService.getAllProperties(),
-                            clientService.getAllClients()
-                        ]);
-                        
-                        // Solo migrar en desarrollo local, NO en producción
-                        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                        
-                        if (isDevelopment && firebaseProperties.length === 0 && firebaseClients.length === 0) {
-                            console.log("Development environment - migrating sample campaigns to Firebase");
-                            for (const campaign of SAMPLE_CAMPAIGNS) {
-                                await campaignService.addCampaign(campaign);
+                    // Si no hay campañas en Firebase
+                    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    
+                    if (isDevelopment) {
+                        // En desarrollo: usar datos de muestra
+                        setCampaigns(SAMPLE_CAMPAIGNS);
+                        // Migrar datos de muestra a Firebase
+                        try {
+                            const [firebaseProperties, firebaseClients] = await Promise.all([
+                                propertyService.getAllProperties(),
+                                clientService.getAllClients()
+                            ]);
+                            
+                            if (firebaseProperties.length === 0 && firebaseClients.length === 0) {
+                                console.log("Development environment - migrating sample campaigns to Firebase");
+                                for (const campaign of SAMPLE_CAMPAIGNS) {
+                                    await campaignService.addCampaign(campaign);
+                                }
+                                console.log("Sample campaigns migrated to Firebase");
                             }
-                            console.log("Sample campaigns migrated to Firebase");
-                        } else {
-                            console.log("Production environment or existing data - skipping campaign migration");
+                        } catch (migrationError) {
+                            console.warn("Failed to migrate sample campaigns to Firebase:", migrationError);
                         }
-                    } catch (migrationError) {
-                        console.warn("Failed to migrate sample campaigns to Firebase:", migrationError);
-                    }
-                    // También guardar en localStorage
-                    try {
-                        localStorage.setItem('inverland_campaigns', JSON.stringify(SAMPLE_CAMPAIGNS));
-                    } catch (localError) {
-                        console.warn("Failed to save sample campaigns to localStorage:", localError);
+                        // También guardar en localStorage
+                        try {
+                            localStorage.setItem('inverland_campaigns', JSON.stringify(SAMPLE_CAMPAIGNS));
+                        } catch (localError) {
+                            console.warn("Failed to save sample campaigns to localStorage:", localError);
+                        }
+                    } else {
+                        // En producción: empezar con lista vacía
+                        setCampaigns([]);
+                        console.log("Production environment - starting with empty campaigns list");
                     }
                 }
             } catch (error) {

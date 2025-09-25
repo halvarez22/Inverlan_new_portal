@@ -30,35 +30,39 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                         console.warn("Failed to save to localStorage backup:", localError);
                     }
                 } else {
-                    // Si no hay clientes en Firebase, usar los de muestra
-                    setClients(SAMPLE_CLIENTS);
-                    // Solo migrar si Firebase está completamente vacío (primera instalación)
-                    try {
-                        const [firebaseProperties, firebaseCampaigns] = await Promise.all([
-                            propertyService.getAllProperties(),
-                            campaignService.getAllCampaigns()
-                        ]);
-                        
-                        // Solo migrar en desarrollo local, NO en producción
-                        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                        
-                        if (isDevelopment && firebaseProperties.length === 0 && firebaseCampaigns.length === 0) {
-                            console.log("Development environment - migrating sample clients to Firebase");
-                            for (const client of SAMPLE_CLIENTS) {
-                                await clientService.addClient(client);
+                    // Si no hay clientes en Firebase
+                    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    
+                    if (isDevelopment) {
+                        // En desarrollo: usar datos de muestra
+                        setClients(SAMPLE_CLIENTS);
+                        // Migrar datos de muestra a Firebase
+                        try {
+                            const [firebaseProperties, firebaseCampaigns] = await Promise.all([
+                                propertyService.getAllProperties(),
+                                campaignService.getAllCampaigns()
+                            ]);
+                            
+                            if (firebaseProperties.length === 0 && firebaseCampaigns.length === 0) {
+                                console.log("Development environment - migrating sample clients to Firebase");
+                                for (const client of SAMPLE_CLIENTS) {
+                                    await clientService.addClient(client);
+                                }
+                                console.log("Sample clients migrated to Firebase");
                             }
-                            console.log("Sample clients migrated to Firebase");
-                        } else {
-                            console.log("Production environment or existing data - skipping client migration");
+                        } catch (migrationError) {
+                            console.warn("Failed to migrate sample clients to Firebase:", migrationError);
                         }
-                    } catch (migrationError) {
-                        console.warn("Failed to migrate sample clients to Firebase:", migrationError);
-                    }
-                    // También guardar en localStorage
-                    try {
-                        localStorage.setItem('inverland_clients', JSON.stringify(SAMPLE_CLIENTS));
-                    } catch (localError) {
-                        console.warn("Failed to save sample clients to localStorage:", localError);
+                        // También guardar en localStorage
+                        try {
+                            localStorage.setItem('inverland_clients', JSON.stringify(SAMPLE_CLIENTS));
+                        } catch (localError) {
+                            console.warn("Failed to save sample clients to localStorage:", localError);
+                        }
+                    } else {
+                        // En producción: empezar con lista vacía
+                        setClients([]);
+                        console.log("Production environment - starting with empty clients list");
                     }
                 }
             } catch (error) {

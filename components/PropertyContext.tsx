@@ -25,29 +25,33 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
                 if (firebaseProperties.length > 0) {
                     setProperties(firebaseProperties);
                 } else {
-                    // Si no hay propiedades en Firebase, usar las de muestra
-                    setProperties(SAMPLE_PROPERTIES);
-                    // Solo migrar si Firebase está completamente vacío (primera instalación)
-                    try {
-                        const [firebaseClients, firebaseCampaigns] = await Promise.all([
-                            clientService.getAllClients(),
-                            campaignService.getAllCampaigns()
-                        ]);
-                        
-                        // Solo migrar en desarrollo local, NO en producción
-                        const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                        
-                        if (isDevelopment && firebaseClients.length === 0 && firebaseCampaigns.length === 0) {
-                            console.log("Development environment - migrating sample data to Firebase");
-                            for (const property of SAMPLE_PROPERTIES) {
-                                await propertyService.addProperty(property);
+                    // Si no hay propiedades en Firebase
+                    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    
+                    if (isDevelopment) {
+                        // En desarrollo: usar datos de muestra
+                        setProperties(SAMPLE_PROPERTIES);
+                        // Migrar datos de muestra a Firebase
+                        try {
+                            const [firebaseClients, firebaseCampaigns] = await Promise.all([
+                                clientService.getAllClients(),
+                                campaignService.getAllCampaigns()
+                            ]);
+                            
+                            if (firebaseClients.length === 0 && firebaseCampaigns.length === 0) {
+                                console.log("Development environment - migrating sample data to Firebase");
+                                for (const property of SAMPLE_PROPERTIES) {
+                                    await propertyService.addProperty(property);
+                                }
+                                console.log("Sample properties migrated to Firebase");
                             }
-                            console.log("Sample properties migrated to Firebase");
-                        } else {
-                            console.log("Production environment or existing data - skipping migration");
+                        } catch (migrationError) {
+                            console.warn("Failed to migrate sample properties to Firebase:", migrationError);
                         }
-                    } catch (migrationError) {
-                        console.warn("Failed to migrate sample properties to Firebase:", migrationError);
+                    } else {
+                        // En producción: empezar con lista vacía
+                        setProperties([]);
+                        console.log("Production environment - starting with empty properties list");
                     }
                 }
             } catch (error) {
