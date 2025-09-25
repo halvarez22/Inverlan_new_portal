@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Campaign, Client } from '../types';
 import { SAMPLE_CAMPAIGNS } from '../constants';
-import { campaignService } from '../services/firebaseService';
+import { campaignService, propertyService, clientService } from '../services/firebaseService';
 
 interface CampaignContextType {
     campaigns: Campaign[];
@@ -32,12 +32,23 @@ export const CampaignProvider: React.FC<{ children: ReactNode }> = ({ children }
                 } else {
                     // Si no hay campañas en Firebase, usar las de muestra
                     setCampaigns(SAMPLE_CAMPAIGNS);
-                    // Migrar campañas de muestra a Firebase
+                    // Solo migrar si Firebase está completamente vacío (primera instalación)
                     try {
-                        for (const campaign of SAMPLE_CAMPAIGNS) {
-                            await campaignService.addCampaign(campaign);
+                        const [firebaseProperties, firebaseClients] = await Promise.all([
+                            propertyService.getAllProperties(),
+                            clientService.getAllClients()
+                        ]);
+                        
+                        // Solo migrar si TODAS las colecciones están vacías
+                        if (firebaseProperties.length === 0 && firebaseClients.length === 0) {
+                            console.log("First time setup - migrating sample campaigns to Firebase");
+                            for (const campaign of SAMPLE_CAMPAIGNS) {
+                                await campaignService.addCampaign(campaign);
+                            }
+                            console.log("Sample campaigns migrated to Firebase");
+                        } else {
+                            console.log("Firebase has existing data - skipping campaign migration");
                         }
-                        console.log("Sample campaigns migrated to Firebase");
                     } catch (migrationError) {
                         console.warn("Failed to migrate sample campaigns to Firebase:", migrationError);
                     }

@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Property, ActivityLog } from '../types';
 import { SAMPLE_PROPERTIES } from '../constants';
-import { propertyService } from '../services/firebaseService';
+import { propertyService, clientService, campaignService } from '../services/firebaseService';
 
 interface PropertyContextType {
     properties: Property[];
@@ -27,12 +27,23 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
                 } else {
                     // Si no hay propiedades en Firebase, usar las de muestra
                     setProperties(SAMPLE_PROPERTIES);
-                    // Migrar propiedades de muestra a Firebase
+                    // Solo migrar si Firebase está completamente vacío (primera instalación)
                     try {
-                        for (const property of SAMPLE_PROPERTIES) {
-                            await propertyService.addProperty(property);
+                        const [firebaseClients, firebaseCampaigns] = await Promise.all([
+                            clientService.getAllClients(),
+                            campaignService.getAllCampaigns()
+                        ]);
+                        
+                        // Solo migrar si TODAS las colecciones están vacías
+                        if (firebaseClients.length === 0 && firebaseCampaigns.length === 0) {
+                            console.log("First time setup - migrating sample data to Firebase");
+                            for (const property of SAMPLE_PROPERTIES) {
+                                await propertyService.addProperty(property);
+                            }
+                            console.log("Sample properties migrated to Firebase");
+                        } else {
+                            console.log("Firebase has existing data - skipping migration");
                         }
-                        console.log("Sample properties migrated to Firebase");
                     } catch (migrationError) {
                         console.warn("Failed to migrate sample properties to Firebase:", migrationError);
                     }

@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Client, ClientActivityLog } from '../types';
 import { SAMPLE_CLIENTS } from '../constants';
-import { clientService } from '../services/firebaseService';
+import { clientService, propertyService, campaignService } from '../services/firebaseService';
 
 interface ClientContextType {
     clients: Client[];
@@ -32,12 +32,23 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 } else {
                     // Si no hay clientes en Firebase, usar los de muestra
                     setClients(SAMPLE_CLIENTS);
-                    // Migrar clientes de muestra a Firebase
+                    // Solo migrar si Firebase está completamente vacío (primera instalación)
                     try {
-                        for (const client of SAMPLE_CLIENTS) {
-                            await clientService.addClient(client);
+                        const [firebaseProperties, firebaseCampaigns] = await Promise.all([
+                            propertyService.getAllProperties(),
+                            campaignService.getAllCampaigns()
+                        ]);
+                        
+                        // Solo migrar si TODAS las colecciones están vacías
+                        if (firebaseProperties.length === 0 && firebaseCampaigns.length === 0) {
+                            console.log("First time setup - migrating sample clients to Firebase");
+                            for (const client of SAMPLE_CLIENTS) {
+                                await clientService.addClient(client);
+                            }
+                            console.log("Sample clients migrated to Firebase");
+                        } else {
+                            console.log("Firebase has existing data - skipping client migration");
                         }
-                        console.log("Sample clients migrated to Firebase");
                     } catch (migrationError) {
                         console.warn("Failed to migrate sample clients to Firebase:", migrationError);
                     }
