@@ -141,7 +141,21 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         
         const isNumeric = ['price', 'rentPrice', 'bedrooms', 'bathrooms', 'halfBathrooms', 'parkingSpaces', 'constructionArea', 'landArea', 'landDepth', 'landFront', 'constructionYear', 'floorNumber', 'buildingFloors', 'maintenanceFee', 'latitude', 'longitude'].includes(name);
 
-        setFormData(prev => ({ ...prev, [name]: isNumeric ? Number(value) : value }));
+        if (isNumeric) {
+            // Para coordenadas, asegurar que sean números válidos
+            if (name === 'latitude' || name === 'longitude') {
+                const numValue = parseFloat(value);
+                if (!isNaN(numValue)) {
+                    setFormData(prev => ({ ...prev, [name]: numValue }));
+                } else {
+                    setFormData(prev => ({ ...prev, [name]: 0 }));
+                }
+            } else {
+                setFormData(prev => ({ ...prev, [name]: Number(value) }));
+            }
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -556,11 +570,16 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                      name="latitude"
                                      value={formData.latitude || ''}
                                      onChange={handleInputChange}
-                                     placeholder="Ej: 20.9674"
+                                     placeholder="Ej: 21.1098"
                                      step="0.000001"
+                                     min="-90"
+                                     max="90"
                                      className="mt-1 block w-full input-style"
                                  />
                                  <p className="text-xs text-gray-500 mt-1">Coordenada norte-sur (-90 a 90)</p>
+                                 {formData.latitude && (formData.latitude < -90 || formData.latitude > 90) && (
+                                     <p className="text-xs text-red-500 mt-1">⚠️ Latitud fuera de rango válido</p>
+                                 )}
                              </div>
                              <div>
                                  <label className="block text-sm font-medium text-gray-700">Longitud</label>
@@ -569,11 +588,16 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                      name="longitude"
                                      value={formData.longitude || ''}
                                      onChange={handleInputChange}
-                                     placeholder="Ej: -89.5926"
+                                     placeholder="Ej: -101.6878"
                                      step="0.000001"
+                                     min="-180"
+                                     max="180"
                                      className="mt-1 block w-full input-style"
                                  />
                                  <p className="text-xs text-gray-500 mt-1">Coordenada este-oeste (-180 a 180)</p>
+                                 {formData.longitude && (formData.longitude < -180 || formData.longitude > 180) && (
+                                     <p className="text-xs text-red-500 mt-1">⚠️ Longitud fuera de rango válido</p>
+                                 )}
                              </div>
                          </div>
                          <div className="bg-blue-50 p-4 rounded-lg">
@@ -582,7 +606,10 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                              <ul className="text-sm text-blue-600 space-y-1">
                                  <li>• <strong>Google Maps:</strong> Click derecho en la ubicación → "¿Qué hay aquí?"</li>
                                  <li>• <strong>Maps.app:</strong> Mantén presionado en la ubicación</li>
-                                 <li>• <strong>Coordenadas comunes:</strong> Mérida (20.9674, -89.5926), CDMX (19.4326, -99.1332)</li>
+                                 <li>• <strong>Coordenadas comunes:</strong></li>
+                                 <li className="ml-4">- León, Gto: Lat 21.1098, Lng -101.6878</li>
+                                 <li className="ml-4">- Mérida, Yuc: Lat 20.9674, Lng -89.5926</li>
+                                 <li className="ml-4">- CDMX: Lat 19.4326, Lng -99.1332</li>
                              </ul>
                          </div>
                          <div>
