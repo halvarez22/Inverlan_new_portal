@@ -24,6 +24,37 @@ const fileToDataUrl = (file: File): Promise<string> => {
     });
 };
 
+// Función para comprimir imágenes
+const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            // Calcular nuevas dimensiones manteniendo proporción
+            let { width, height } = img;
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Dibujar imagen redimensionada
+            ctx?.drawImage(img, 0, 0, width, height);
+            
+            // Convertir a DataURL con compresión
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressedDataUrl);
+        };
+        
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+    });
+};
+
 // Define InputField props for type safety
 interface InputFieldProps {
     label: string;
@@ -262,7 +293,8 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         setIsLoading(true);
 
         try {
-            const imagePromises = imageFiles.map(file => fileToDataUrl(file));
+            // Comprimir imágenes antes de enviar a Firebase
+            const imagePromises = imageFiles.map(file => compressImage(file, 800, 0.7));
             const images = await Promise.all(imagePromises);
 
             const locationString = `${formData.city}, ${formData.state}`;
