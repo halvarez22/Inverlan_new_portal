@@ -142,37 +142,45 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         const isNumeric = ['price', 'rentPrice', 'bedrooms', 'bathrooms', 'halfBathrooms', 'parkingSpaces', 'constructionArea', 'landArea', 'landDepth', 'landFront', 'constructionYear', 'floorNumber', 'buildingFloors', 'maintenanceFee', 'latitude', 'longitude'].includes(name);
 
         if (isNumeric) {
-            // Para coordenadas, asegurar que sean números válidos
+            // Para coordenadas, manejar como texto para evitar problemas de borrado
             if (name === 'latitude' || name === 'longitude') {
-                // DEBUG: Mostrar valor original y parseado
-                console.log(`🔍 Coordenada ${name}:`, { original: value, parsed: parseFloat(value) });
+                // DEBUG: Mostrar valor original
+                console.log(`🔍 Coordenada ${name}:`, { original: value });
                 
-                let numValue = parseFloat(value);
-                
-                // CORRECCIÓN: Validar y corregir coordenadas automáticamente
-                if (name === 'latitude') {
-                    // Latitud debe estar entre -90 y 90
-                    if (numValue < -90 || numValue > 90) {
-                        console.warn(`⚠️ Latitud fuera de rango: ${numValue}, corrigiendo a 0`);
-                        numValue = 0;
-                    }
-                } else if (name === 'longitude') {
-                    // Longitud debe estar entre -180 y 180
-                    if (numValue < -180 || numValue > 180) {
-                        console.warn(`⚠️ Longitud fuera de rango: ${numValue}, corrigiendo a 0`);
-                        numValue = 0;
-                    }
-                    // CORRECCIÓN ESPECÍFICA: Si la longitud es muy pequeña (como -10), probablemente falta el 1
-                    if (numValue > -20 && numValue < 0) {
-                        console.warn(`⚠️ Longitud sospechosa: ${numValue}, posiblemente falta el 1`);
-                        // No corregir automáticamente, solo advertir
-                    }
+                // Permitir valores vacíos, parciales y negativos durante la escritura
+                if (value === '' || value === '-' || value === '.' || value === '-.') {
+                    setFormData(prev => ({ ...prev, [name]: value }));
+                    return;
                 }
                 
-                if (!isNaN(numValue)) {
-                    setFormData(prev => ({ ...prev, [name]: numValue }));
+                // Permitir escritura parcial de números decimales
+                if (value.match(/^-?\d*\.?\d*$/)) {
+                    const numValue = parseFloat(value);
+                    
+                    // Solo validar si es un número válido completo
+                    if (!isNaN(numValue)) {
+                        // CORRECCIÓN: Validar rangos pero no corregir automáticamente
+                        if (name === 'latitude') {
+                            if (numValue < -90 || numValue > 90) {
+                                console.warn(`⚠️ Latitud fuera de rango: ${numValue}`);
+                            }
+                        } else if (name === 'longitude') {
+                            if (numValue < -180 || numValue > 180) {
+                                console.warn(`⚠️ Longitud fuera de rango: ${numValue}`);
+                            }
+                            if (numValue > -20 && numValue < 0) {
+                                console.warn(`⚠️ Longitud sospechosa: ${numValue}, posiblemente falta el 1`);
+                            }
+                        }
+                        
+                        setFormData(prev => ({ ...prev, [name]: numValue }));
+                    } else {
+                        // Si no es un número válido completo, mantener el texto para permitir escritura parcial
+                        setFormData(prev => ({ ...prev, [name]: value }));
+                    }
                 } else {
-                    setFormData(prev => ({ ...prev, [name]: 0 }));
+                    // Si no coincide con el patrón de número decimal, mantener el valor anterior
+                    console.warn(`⚠️ Valor inválido para ${name}: ${value}`);
                 }
             } else {
                 setFormData(prev => ({ ...prev, [name]: Number(value) }));
@@ -186,6 +194,72 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value === 'true' ? true : value === 'false' ? false : value }));
     }
+
+    // Función para manejar pegado inteligente de coordenadas
+    const handleCoordinatePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        const pastedText = e.clipboardData.getData('text').trim();
+        const fieldName = e.currentTarget.name;
+        
+        console.log('🔍 Pegado detectado:', { fieldName, pastedText });
+        
+        // Detectar si el texto pegado contiene ambas coordenadas (separadas por coma, espacio, etc.)
+        const coordinatePattern = /(-?\d+\.?\d*)\s*[,;]\s*(-?\d+\.?\d*)/;
+        const match = pastedText.match(coordinatePattern);
+        
+        if (match) {
+            const [, coord1Str, coord2Str] = match;
+            const coord1 = parseFloat(coord1Str);
+            const coord2 = parseFloat(coord2Str);
+            
+            console.log('🔍 Coordenadas detectadas:', { coord1, coord2 });
+            
+            // Determinar cuál es latitud y cuál es longitud basado en los rangos
+            let latitude, longitude;
+            
+            // Para México, la latitud está entre 14-32 y longitud entre -118 a -86
+            if (coord1 >= 14 && coord1 <= 32 && coord2 >= -118 && coord2 <= -86) {
+                // coord1 es latitud, coord2 es longitud
+                latitude = coord1;
+                longitude = coord2;
+            } else if (coord2 >= 14 && coord2 <= 32 && coord1 >= -118 && coord1 <= -86) {
+                // coord2 es latitud, coord1 es longitud
+                latitude = coord2;
+                longitude = coord1;
+            } else {
+                // Usar rangos generales
+                if (coord1 >= -90 && coord1 <= 90 && (coord2 < -90 || coord2 > 90)) {
+                    latitude = coord1;
+                    longitude = coord2;
+                } else if (coord2 >= -90 && coord2 <= 90 && (coord1 < -90 || coord1 > 90)) {
+                    latitude = coord2;
+                    longitude = coord1;
+                } else {
+                    // Si ambos están en rango de latitud, usar el orden original
+                    latitude = coord1;
+                    longitude = coord2;
+                }
+            }
+            
+            console.log('🔍 Coordenadas asignadas:', { latitude, longitude });
+            
+            // Actualizar ambos campos
+            setFormData(prev => ({
+                ...prev,
+                latitude: latitude,
+                longitude: longitude
+            }));
+        } else {
+            // Si no es un par de coordenadas, pegar normalmente
+            const numValue = parseFloat(pastedText);
+            if (!isNaN(numValue)) {
+                setFormData(prev => ({ ...prev, [fieldName]: numValue }));
+            } else {
+                // Si no es un número válido, mantener el texto para permitir escritura parcial
+                setFormData(prev => ({ ...prev, [fieldName]: pastedText }));
+            }
+        }
+    };
     
     const handleAmenityToggle = (amenity: string) => {
         setFormData(prev => {
@@ -590,14 +664,12 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                              <div>
                                  <label className="block text-sm font-medium text-gray-700">Latitud</label>
                                  <input
-                                     type="number"
+                                     type="text"
                                      name="latitude"
                                      value={formData.latitude || ''}
                                      onChange={handleInputChange}
+                                     onPaste={handleCoordinatePaste}
                                      placeholder="Ej: 21.1098"
-                                     step="0.000001"
-                                     min="-90"
-                                     max="90"
                                      className="mt-1 block w-full input-style"
                                  />
                                  <p className="text-xs text-gray-500 mt-1">Coordenada norte-sur (-90 a 90)</p>
@@ -608,14 +680,12 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                              <div>
                                  <label className="block text-sm font-medium text-gray-700">Longitud</label>
                                  <input
-                                     type="number"
+                                     type="text"
                                      name="longitude"
                                      value={formData.longitude || ''}
                                      onChange={handleInputChange}
+                                     onPaste={handleCoordinatePaste}
                                      placeholder="Ej: -101.6878"
-                                     step="0.000001"
-                                     min="-180"
-                                     max="180"
                                      className="mt-1 block w-full input-style"
                                  />
                                  <p className="text-xs text-gray-500 mt-1">Coordenada este-oeste (-180 a 180)</p>
