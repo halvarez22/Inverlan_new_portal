@@ -17,18 +17,56 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const [clients, setClients] = useState<Client[]>([]);
 
     useEffect(() => {
-        try {
-            const storedClients = localStorage.getItem('inverland_clients');
-            if (storedClients) {
-                setClients(JSON.parse(storedClients));
-            } else {
-                setClients(SAMPLE_CLIENTS);
-                localStorage.setItem('inverland_clients', JSON.stringify(SAMPLE_CLIENTS));
+        const loadClients = async () => {
+            try {
+                // Intentar cargar desde Firebase primero
+                const firebaseClients = await clientService.getAllClients();
+                if (firebaseClients.length > 0) {
+                    setClients(firebaseClients);
+                    // También guardar en localStorage como backup
+                    try {
+                        localStorage.setItem('inverland_clients', JSON.stringify(firebaseClients));
+                    } catch (localError) {
+                        console.warn("Failed to save to localStorage backup:", localError);
+                    }
+                } else {
+                    // Si no hay clientes en Firebase, usar los de muestra
+                    setClients(SAMPLE_CLIENTS);
+                    // Migrar clientes de muestra a Firebase
+                    try {
+                        for (const client of SAMPLE_CLIENTS) {
+                            await clientService.addClient(client);
+                        }
+                        console.log("Sample clients migrated to Firebase");
+                    } catch (migrationError) {
+                        console.warn("Failed to migrate sample clients to Firebase:", migrationError);
+                    }
+                    // También guardar en localStorage
+                    try {
+                        localStorage.setItem('inverland_clients', JSON.stringify(SAMPLE_CLIENTS));
+                    } catch (localError) {
+                        console.warn("Failed to save sample clients to localStorage:", localError);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load clients from Firebase:", error);
+                // Fallback a localStorage si Firebase falla
+                try {
+                    const storedClients = localStorage.getItem('inverland_clients');
+                    if (storedClients) {
+                        setClients(JSON.parse(storedClients));
+                    } else {
+                        setClients(SAMPLE_CLIENTS);
+                        localStorage.setItem('inverland_clients', JSON.stringify(SAMPLE_CLIENTS));
+                    }
+                } catch (localError) {
+                    console.error("Failed to access localStorage for clients:", localError);
+                    setClients(SAMPLE_CLIENTS);
+                }
             }
-        } catch (error) {
-            console.error("Failed to access localStorage for clients:", error);
-            setClients(SAMPLE_CLIENTS);
-        }
+        };
+
+        loadClients();
     }, []);
 
     const saveClients = (newClients: Client[]) => {
@@ -40,27 +78,83 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         setClients(newClients);
     };
 
-    const addClient = (client: Omit<Client, 'id' | 'createdAt'>) => {
-        const newClient: Client = { 
-            ...client, 
-            id: `client-${Date.now()}`,
-            createdAt: new Date().toISOString(),
-        };
-        const updatedClients = [...clients, newClient];
-        saveClients(updatedClients);
+    const addClient = async (client: Omit<Client, 'id' | 'createdAt'>) => {
+        try {
+            // Guardar en Firebase primero
+            const newClientId = await clientService.addClient(client);
+            const newClient: Client = { 
+                ...client, 
+                id: newClientId,
+                createdAt: new Date().toISOString(),
+            };
+            const updatedClients = [newClient, ...clients];
+            setClients(updatedClients);
+            
+            // También guardar en localStorage como backup
+            try {
+                localStorage.setItem('inverland_clients', JSON.stringify(updatedClients));
+            } catch (localError) {
+                console.warn("Failed to save to localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to add client to Firebase:", error);
+            // Fallback a localStorage
+            const newClient: Client = { 
+                ...client, 
+                id: `client-${Date.now()}`,
+                createdAt: new Date().toISOString(),
+            };
+            const updatedClients = [newClient, ...clients];
+            setClients(updatedClients);
+            localStorage.setItem('inverland_clients', JSON.stringify(updatedClients));
+        }
     };
 
-    const updateClient = (updatedClient: Client) => {
-        const updatedClients = clients.map(c => (c.id === updatedClient.id ? updatedClient : c));
-        saveClients(updatedClients);
+    const updateClient = async (updatedClient: Client) => {
+        try {
+            // Actualizar en Firebase primero
+            await clientService.updateClient(updatedClient.id, updatedClient);
+            const updatedClients = clients.map(c => (c.id === updatedClient.id ? updatedClient : c));
+            setClients(updatedClients);
+            
+            // También actualizar localStorage como backup
+            try {
+                localStorage.setItem('inverland_clients', JSON.stringify(updatedClients));
+            } catch (localError) {
+                console.warn("Failed to update localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to update client in Firebase:", error);
+            // Fallback a localStorage
+            const updatedClients = clients.map(c => (c.id === updatedClient.id ? updatedClient : c));
+            setClients(updatedClients);
+            localStorage.setItem('inverland_clients', JSON.stringify(updatedClients));
+        }
     };
 
-    const deleteClient = (clientId: string) => {
-        const updatedClients = clients.filter(c => c.id !== clientId);
-        saveClients(updatedClients);
+    const deleteClient = async (clientId: string) => {
+        try {
+            // Eliminar de Firebase primero
+            await clientService.deleteClient(clientId);
+            const updatedClients = clients.filter(c => c.id !== clientId);
+            setClients(updatedClients);
+            
+            // También actualizar localStorage como backup
+            try {
+                localStorage.setItem('inverland_clients', JSON.stringify(updatedClients));
+            } catch (localError) {
+                console.warn("Failed to update localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to delete client from Firebase:", error);
+            // Fallback a localStorage
+            const updatedClients = clients.filter(c => c.id !== clientId);
+            setClients(updatedClients);
+            localStorage.setItem('inverland_clients', JSON.stringify(updatedClients));
+        }
     };
     
-    const addActivityToClient = (clientId: string, activityData: Omit<ClientActivityLog, 'id' | 'timestamp'>) => {
+    const addActivityToClient = async (clientId: string, activityData: Omit<ClientActivityLog, 'id' | 'timestamp'>) => {
         const newActivity: ClientActivityLog = {
             ...activityData,
             id: `client-activity-${Date.now()}`,
@@ -74,7 +168,27 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             }
             return c;
         });
-        saveClients(updatedClients);
+
+        // Actualizar el cliente en Firebase
+        const clientToUpdate = updatedClients.find(c => c.id === clientId);
+        if (clientToUpdate) {
+            try {
+                await clientService.updateClient(clientId, clientToUpdate);
+                setClients(updatedClients);
+                
+                // También actualizar localStorage como backup
+                try {
+                    localStorage.setItem('inverland_clients', JSON.stringify(updatedClients));
+                } catch (localError) {
+                    console.warn("Failed to update localStorage backup:", localError);
+                }
+            } catch (error) {
+                console.error("Failed to update client activity in Firebase:", error);
+                // Fallback a localStorage
+                setClients(updatedClients);
+                localStorage.setItem('inverland_clients', JSON.stringify(updatedClients));
+            }
+        }
     };
 
     return (

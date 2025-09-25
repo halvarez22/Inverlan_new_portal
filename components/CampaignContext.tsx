@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Campaign, Client } from '../types';
 import { SAMPLE_CAMPAIGNS } from '../constants';
+import { campaignService } from '../services/firebaseService';
 
 interface CampaignContextType {
     campaigns: Campaign[];
@@ -16,18 +17,56 @@ export const CampaignProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
     useEffect(() => {
-        try {
-            const storedCampaigns = localStorage.getItem('inverland_campaigns');
-            if (storedCampaigns) {
-                setCampaigns(JSON.parse(storedCampaigns));
-            } else {
-                setCampaigns(SAMPLE_CAMPAIGNS);
-                localStorage.setItem('inverland_campaigns', JSON.stringify(SAMPLE_CAMPAIGNS));
+        const loadCampaigns = async () => {
+            try {
+                // Intentar cargar desde Firebase primero
+                const firebaseCampaigns = await campaignService.getAllCampaigns();
+                if (firebaseCampaigns.length > 0) {
+                    setCampaigns(firebaseCampaigns);
+                    // También guardar en localStorage como backup
+                    try {
+                        localStorage.setItem('inverland_campaigns', JSON.stringify(firebaseCampaigns));
+                    } catch (localError) {
+                        console.warn("Failed to save to localStorage backup:", localError);
+                    }
+                } else {
+                    // Si no hay campañas en Firebase, usar las de muestra
+                    setCampaigns(SAMPLE_CAMPAIGNS);
+                    // Migrar campañas de muestra a Firebase
+                    try {
+                        for (const campaign of SAMPLE_CAMPAIGNS) {
+                            await campaignService.addCampaign(campaign);
+                        }
+                        console.log("Sample campaigns migrated to Firebase");
+                    } catch (migrationError) {
+                        console.warn("Failed to migrate sample campaigns to Firebase:", migrationError);
+                    }
+                    // También guardar en localStorage
+                    try {
+                        localStorage.setItem('inverland_campaigns', JSON.stringify(SAMPLE_CAMPAIGNS));
+                    } catch (localError) {
+                        console.warn("Failed to save sample campaigns to localStorage:", localError);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load campaigns from Firebase:", error);
+                // Fallback a localStorage si Firebase falla
+                try {
+                    const storedCampaigns = localStorage.getItem('inverland_campaigns');
+                    if (storedCampaigns) {
+                        setCampaigns(JSON.parse(storedCampaigns));
+                    } else {
+                        setCampaigns(SAMPLE_CAMPAIGNS);
+                        localStorage.setItem('inverland_campaigns', JSON.stringify(SAMPLE_CAMPAIGNS));
+                    }
+                } catch (localError) {
+                    console.error("Failed to access localStorage for campaigns:", localError);
+                    setCampaigns(SAMPLE_CAMPAIGNS);
+                }
             }
-        } catch (error) {
-            console.error("Failed to access localStorage for campaigns:", error);
-            setCampaigns(SAMPLE_CAMPAIGNS);
-        }
+        };
+
+        loadCampaigns();
     }, []);
 
     const saveCampaigns = (newCampaigns: Campaign[]) => {
@@ -39,25 +78,88 @@ export const CampaignProvider: React.FC<{ children: ReactNode }> = ({ children }
         setCampaigns(newCampaigns);
     };
 
-    const addCampaign = (campaign: Omit<Campaign, 'id' | 'status' | 'sentToCount' | 'sentAt'>) => {
-        const newCampaign: Campaign = { 
-            ...campaign, 
-            id: `campaign-${Date.now()}`,
-            status: 'Borrador',
-            sentToCount: 0,
-        };
-        saveCampaigns([...campaigns, newCampaign]);
+    const addCampaign = async (campaign: Omit<Campaign, 'id' | 'status' | 'sentToCount' | 'sentAt'>) => {
+        try {
+            // Guardar en Firebase primero
+            const newCampaignData: Omit<Campaign, 'id'> = {
+                ...campaign,
+                status: 'Borrador',
+                sentToCount: 0,
+            };
+            const newCampaignId = await campaignService.addCampaign(newCampaignData);
+            const newCampaign: Campaign = { 
+                ...newCampaignData,
+                id: newCampaignId,
+            };
+            const updatedCampaigns = [newCampaign, ...campaigns];
+            setCampaigns(updatedCampaigns);
+            
+            // También guardar en localStorage como backup
+            try {
+                localStorage.setItem('inverland_campaigns', JSON.stringify(updatedCampaigns));
+            } catch (localError) {
+                console.warn("Failed to save to localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to add campaign to Firebase:", error);
+            // Fallback a localStorage
+            const newCampaign: Campaign = { 
+                ...campaign, 
+                id: `campaign-${Date.now()}`,
+                status: 'Borrador',
+                sentToCount: 0,
+            };
+            const updatedCampaigns = [newCampaign, ...campaigns];
+            setCampaigns(updatedCampaigns);
+            localStorage.setItem('inverland_campaigns', JSON.stringify(updatedCampaigns));
+        }
     };
 
-    const updateCampaign = (updatedCampaign: Campaign) => {
-        saveCampaigns(campaigns.map(c => (c.id === updatedCampaign.id ? updatedCampaign : c)));
+    const updateCampaign = async (updatedCampaign: Campaign) => {
+        try {
+            // Actualizar en Firebase primero
+            await campaignService.updateCampaign(updatedCampaign.id, updatedCampaign);
+            const updatedCampaigns = campaigns.map(c => (c.id === updatedCampaign.id ? updatedCampaign : c));
+            setCampaigns(updatedCampaigns);
+            
+            // También actualizar localStorage como backup
+            try {
+                localStorage.setItem('inverland_campaigns', JSON.stringify(updatedCampaigns));
+            } catch (localError) {
+                console.warn("Failed to update localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to update campaign in Firebase:", error);
+            // Fallback a localStorage
+            const updatedCampaigns = campaigns.map(c => (c.id === updatedCampaign.id ? updatedCampaign : c));
+            setCampaigns(updatedCampaigns);
+            localStorage.setItem('inverland_campaigns', JSON.stringify(updatedCampaigns));
+        }
     };
 
-    const deleteCampaign = (campaignId: string) => {
-        saveCampaigns(campaigns.filter(c => c.id !== campaignId));
+    const deleteCampaign = async (campaignId: string) => {
+        try {
+            // Eliminar de Firebase primero
+            await campaignService.deleteCampaign(campaignId);
+            const updatedCampaigns = campaigns.filter(c => c.id !== campaignId);
+            setCampaigns(updatedCampaigns);
+            
+            // También actualizar localStorage como backup
+            try {
+                localStorage.setItem('inverland_campaigns', JSON.stringify(updatedCampaigns));
+            } catch (localError) {
+                console.warn("Failed to update localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to delete campaign from Firebase:", error);
+            // Fallback a localStorage
+            const updatedCampaigns = campaigns.filter(c => c.id !== campaignId);
+            setCampaigns(updatedCampaigns);
+            localStorage.setItem('inverland_campaigns', JSON.stringify(updatedCampaigns));
+        }
     };
     
-    const sendCampaign = (campaignId: string, allClients: Client[]): Client[] => {
+    const sendCampaign = async (campaignId: string, allClients: Client[]): Promise<Client[]> => {
         const campaign = campaigns.find(c => c.id === campaignId);
         if (!campaign || campaign.status === 'Enviada') {
             console.warn("Campaign not found or already sent.");
@@ -77,10 +179,28 @@ export const CampaignProvider: React.FC<{ children: ReactNode }> = ({ children }
             sentToCount: targetClients.length,
         };
         
-        updateCampaign(updatedCampaign);
+        // Actualizar la campaña en Firebase
+        try {
+            await campaignService.updateCampaign(campaignId, updatedCampaign);
+            const updatedCampaigns = campaigns.map(c => (c.id === campaignId ? updatedCampaign : c));
+            setCampaigns(updatedCampaigns);
+            
+            // También actualizar localStorage como backup
+            try {
+                localStorage.setItem('inverland_campaigns', JSON.stringify(updatedCampaigns));
+            } catch (localError) {
+                console.warn("Failed to update localStorage backup:", localError);
+            }
+        } catch (error) {
+            console.error("Failed to update campaign status in Firebase:", error);
+            // Fallback a localStorage
+            const updatedCampaigns = campaigns.map(c => (c.id === campaignId ? updatedCampaign : c));
+            setCampaigns(updatedCampaigns);
+            localStorage.setItem('inverland_campaigns', JSON.stringify(updatedCampaigns));
+        }
+        
         return targetClients;
     };
-
 
     return (
         <CampaignContext.Provider value={{ campaigns, addCampaign, updateCampaign, deleteCampaign, sendCampaign }}>

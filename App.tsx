@@ -34,6 +34,9 @@ import ClientDetailPage from './components/ClientDetailPage';
 import AgentPropertyDetailPage from './components/AgentPropertyDetailPage';
 import AboutPage from './components/AboutPage';
 import ContactPage from './components/ContactPage';
+import DataMigration from './components/DataMigration';
+import SyncStatus from './components/SyncStatus';
+import { useConnectionStatus } from './hooks/useConnectionStatus';
 
 type View =
     | 'home'
@@ -58,6 +61,7 @@ type View =
 function App() {
     const { isAuthenticated, currentUser, logout: authLogout } = useAuth();
     const { properties } = useProperties();
+    const { isOnline, lastSync } = useConnectionStatus();
     const [view, setView] = useState<View>('home');
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -198,6 +202,8 @@ function App() {
             {!isAuthenticated && <Chatbot />}
             <Footer />
             {isAppointmentModalOpen && <AppointmentModal onClose={() => setAppointmentModalOpen(false)} />}
+            <DataMigration />
+            <SyncStatus isOnline={isOnline} lastSync={lastSync || undefined} />
         </div>
     );
 }

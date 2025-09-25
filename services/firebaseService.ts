@@ -11,11 +11,12 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Property, Client } from '../types';
+import { Property, Client, Campaign } from '../types';
 
 // Collections
 const PROPERTIES_COLLECTION = 'properties';
 const CLIENTS_COLLECTION = 'clients';
+const CAMPAIGNS_COLLECTION = 'campaigns';
 
 // Property Service
 export const propertyService = {
@@ -168,6 +169,84 @@ export const clientService = {
       await deleteDoc(docRef);
     } catch (error) {
       console.error('Error deleting client:', error);
+      throw error;
+    }
+  }
+};
+
+// Campaign Service
+export const campaignService = {
+  // Get all campaigns
+  async getAllCampaigns(): Promise<Campaign[]> {
+    try {
+      const q = query(collection(db, CAMPAIGNS_COLLECTION), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Campaign[];
+    } catch (error) {
+      console.error('Error getting campaigns:', error);
+      throw error;
+    }
+  },
+
+  // Get campaign by ID
+  async getCampaignById(id: string): Promise<Campaign | null> {
+    try {
+      const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data()
+        } as Campaign;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error getting campaign:', error);
+      throw error;
+    }
+  },
+
+  // Add new campaign
+  async addCampaign(campaign: Omit<Campaign, 'id'>): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, CAMPAIGNS_COLLECTION), {
+        ...campaign,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding campaign:', error);
+      throw error;
+    }
+  },
+
+  // Update campaign
+  async updateCampaign(id: string, campaign: Partial<Campaign>): Promise<void> {
+    try {
+      const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
+      await updateDoc(docRef, {
+        ...campaign,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      throw error;
+    }
+  },
+
+  // Delete campaign
+  async deleteCampaign(id: string): Promise<void> {
+    try {
+      const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
       throw error;
     }
   }

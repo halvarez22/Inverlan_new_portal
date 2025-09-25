@@ -27,8 +27,15 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
                 } else {
                     // Si no hay propiedades en Firebase, usar las de muestra
                     setProperties(SAMPLE_PROPERTIES);
-                    // Opcional: migrar propiedades de muestra a Firebase
-                    // await migrateSampleProperties();
+                    // Migrar propiedades de muestra a Firebase
+                    try {
+                        for (const property of SAMPLE_PROPERTIES) {
+                            await propertyService.addProperty(property);
+                        }
+                        console.log("Sample properties migrated to Firebase");
+                    } catch (migrationError) {
+                        console.warn("Failed to migrate sample properties to Firebase:", migrationError);
+                    }
                 }
             } catch (error) {
                 console.error("Failed to load properties from Firebase:", error);
