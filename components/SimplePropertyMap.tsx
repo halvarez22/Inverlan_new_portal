@@ -20,8 +20,14 @@ const SimplePropertyMap: React.FC<SimplePropertyMapProps> = ({ lat, lng, popupTe
     }
 
     // Create OpenStreetMap URL (no API key required)
-    // CORRECCIÓN: bbox debe ser minLat,minLng,maxLat,maxLng (no minLng,minLat,maxLng,maxLat)
-    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lat-0.01},${lng-0.01},${lat+0.01},${lng+0.01}&layer=mapnik&marker=${lat},${lng}`;
+    // PRUEBA: Usar formato estándar de OpenStreetMap
+    // Para México: León (21.1098, -101.6878) debe mostrar León, Guanajuato
+    
+    // DEBUG: Mostrar coordenadas en consola
+    console.log('Mapa coordenadas:', { lat, lng, popupText });
+    console.log('URL generada:', `bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&marker=${lat},${lng}`);
+    
+    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.01},${lat-0.01},${lng+0.01},${lat+0.01}&layer=mapnik&marker=${lat},${lng}`;
 
     return (
         <div style={{ height: '400px', width: '100%', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
