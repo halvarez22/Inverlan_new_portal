@@ -76,6 +76,13 @@ function App() {
         window.scrollTo(0, 0);
     };
 
+    const handleNavigateToProperties = () => {
+        handleNavigate('home');
+        setTimeout(() => {
+            propertyListingsRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    };
+
     const handleViewProperty = (property: Property) => {
         setSelectedProperty(property);
         handleNavigate('propertyDetail');
@@ -149,6 +156,7 @@ function App() {
 
 
     const renderContent = () => {
+        console.log('App.tsx - renderContent called with view:', view);
         const homePage = (
             <>
                 <Hero onSearch={handleSearch} isSearching={isSearching} />
@@ -164,7 +172,15 @@ function App() {
             switch (view) {
                 case 'login': return <LoginPage onLoginSuccess={handleLoginSuccess} />;
                 case 'propertyDetail': return selectedProperty ? <PropertyDetailPage property={selectedProperty} onBack={handleBackToList} /> : homePage;
-                case 'about': return <AboutPage />;
+                case 'about': 
+                    console.log('App.tsx - Rendering AboutPage (not authenticated)');
+                    return <AboutPage 
+                        onNavigate={(view: View) => {
+                            console.log('App.tsx - AboutPage onNavigate called with view:', view);
+                            handleNavigate(view);
+                        }}
+                        onNavigateToProperties={handleNavigateToProperties}
+                    />;
                 case 'contact': return <ContactPage />;
                 default: return homePage;
             }
@@ -185,7 +201,15 @@ function App() {
             case 'propertyDetail': return selectedProperty ? <PropertyDetailPage property={selectedProperty} onBack={handleBackToList} /> : homePage;
             case 'clientDetail': return selectedClient ? <ClientDetailPage client={selectedClient} onBack={() => handleNavigate('agentPortal')} /> : <AgentPortal onNavigate={(v) => handleNavigate(v as View)} onViewClient={handleViewClient} onViewProperty={handleViewAgentProperty} selectedProperty={selectedProperty} selectedClient={selectedClient} />;
             case 'agentPropertyDetail': return selectedProperty ? <AgentPropertyDetailPage property={selectedProperty} onBack={() => handleNavigate('agentPortal')} /> : <AgentPortal onNavigate={(v) => handleNavigate(v as View)} onViewClient={handleViewClient} onViewProperty={handleViewAgentProperty} selectedProperty={selectedProperty} selectedClient={selectedClient} />;
-            case 'about': return <AboutPage />;
+            case 'about': 
+                console.log('App.tsx - Rendering AboutPage with handleNavigate:', handleNavigate);
+                return <AboutPage 
+                    onNavigate={(view: View) => {
+                        console.log('App.tsx - AboutPage onNavigate called with view:', view);
+                        handleNavigate(view);
+                    }}
+                    onNavigateToProperties={handleNavigateToProperties}
+                />;
             case 'contact': return <ContactPage />;
             case 'home':
             default: return homePage;

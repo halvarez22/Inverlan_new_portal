@@ -1,6 +1,18 @@
 import React from 'react';
 
-const AboutPage: React.FC = () => {
+type View = 'home' | 'login' | 'dashboard' | 'userPortal' | 'propertyDetail' | 'addProperty' | 'editProperty' | 'agents' | 'tracking' | 'userManagement' | 'clients' | 'marketing' | 'analytics' | 'agentPortal' | 'clientDetail' | 'agentPropertyDetail' | 'about' | 'contact';
+
+interface AboutPageProps {
+    onNavigate: (view: View) => void;
+    onNavigateToProperties: () => void;
+}
+
+const AboutPage: React.FC<AboutPageProps> = ({ onNavigate, onNavigateToProperties }) => {
+    console.log('AboutPage - onNavigate:', onNavigate);
+    console.log('AboutPage - onNavigateToProperties:', onNavigateToProperties);
+    console.log('AboutPage - typeof onNavigate:', typeof onNavigate);
+    console.log('AboutPage - typeof onNavigateToProperties:', typeof onNavigateToProperties);
+    
     return (
         <div className="bg-white">
             {/* Hero Section */}
@@ -176,10 +188,30 @@ const AboutPage: React.FC = () => {
                             Permítenos ayudarte a encontrar la propiedad perfecta que se adapte a tus necesidades y sueños.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button className="bg-white text-inverland-green font-bold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105 shadow-lg">
+                            <button 
+                                onClick={() => {
+                                    console.log('Ver Propiedades clicked - onNavigateToProperties:', onNavigateToProperties);
+                                    if (typeof onNavigateToProperties === 'function') {
+                                        onNavigateToProperties();
+                                    } else {
+                                        console.error('onNavigateToProperties is not a function:', onNavigateToProperties);
+                                    }
+                                }} 
+                                className="bg-white text-inverland-green font-bold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105 shadow-lg"
+                            >
                                 Ver Propiedades
                             </button>
-                            <button className="border-2 border-white text-white font-bold px-8 py-4 rounded-lg hover:bg-white hover:text-inverland-green transition-colors duration-300">
+                            <button 
+                                onClick={() => {
+                                    console.log('Contactar Ahora clicked - onNavigate:', onNavigate);
+                                    if (typeof onNavigate === 'function') {
+                                        onNavigate('contact');
+                                    } else {
+                                        console.error('onNavigate is not a function:', onNavigate);
+                                    }
+                                }} 
+                                className="border-2 border-white text-white font-bold px-8 py-4 rounded-lg hover:bg-white hover:text-inverland-green transition-colors duration-300"
+                            >
                                 Contactar Ahora
                             </button>
                         </div>

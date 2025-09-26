@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import emailjs from '@emailjs/browser';
+
+// EmailJS Configuration
+const EMAILJS_SERVICE_ID = 'service_slqwydd';
+const EMAILJS_TEMPLATE_ID = 'template_q5xy7s8';
+const EMAILJS_PUBLIC_KEY = 'Hwo6fv58nKvtLnHs2';
 
 const ContactPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -10,6 +16,8 @@ const ContactPage: React.FC = () => {
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [submitMessage, setSubmitMessage] = useState('');
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -22,10 +30,37 @@ const ContactPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setSubmitStatus('idle');
+        setSubmitMessage('');
         
-        // Simular envío del formulario
-        setTimeout(() => {
-            alert('¡Gracias por contactarnos! Te responderemos pronto.');
+        try {
+            // Configurar EmailJS
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+            
+            // Preparar datos para el template
+            const templateParams = {
+                from_name: formData.name,
+                from_email: formData.email,
+                phone: formData.phone,
+                subject: formData.subject,
+                message: formData.message,
+                to_email: 'hola@inverland.mx'
+            };
+            
+            // Enviar email
+            const result = await emailjs.send(
+                EMAILJS_SERVICE_ID,
+                EMAILJS_TEMPLATE_ID,
+                templateParams
+            );
+            
+            console.log('Email enviado exitosamente:', result);
+            
+            // Éxito
+            setSubmitStatus('success');
+            setSubmitMessage('¡Gracias por contactarnos! Te responderemos pronto.');
+            
+            // Limpiar formulario
             setFormData({
                 name: '',
                 email: '',
@@ -33,8 +68,16 @@ const ContactPage: React.FC = () => {
                 subject: '',
                 message: ''
             });
+            
+        } catch (error) {
+            console.error('Error enviando email:', error);
+            
+            // Error
+            setSubmitStatus('error');
+            setSubmitMessage('Hubo un error al enviar el mensaje. Por favor, intenta de nuevo o contáctanos directamente.');
+        } finally {
             setIsSubmitting(false);
-        }, 1000);
+        }
     };
 
     return (
@@ -250,6 +293,28 @@ const ContactPage: React.FC = () => {
                                         'Enviar Mensaje'
                                     )}
                                 </button>
+                                
+                                {/* Status Message */}
+                                {submitStatus !== 'idle' && (
+                                    <div className={`mt-4 p-4 rounded-lg ${
+                                        submitStatus === 'success' 
+                                            ? 'bg-green-100 text-green-800 border border-green-200' 
+                                            : 'bg-red-100 text-red-800 border border-red-200'
+                                    }`}>
+                                        <div className="flex items-center">
+                                            {submitStatus === 'success' ? (
+                                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                            )}
+                                            <span className="font-medium">{submitMessage}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </form>
                         </div>
                     </div>

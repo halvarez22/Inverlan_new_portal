@@ -81,7 +81,7 @@ const InputField: React.FC<InputFieldProps> = ({label, name, type="text", requir
 const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
     const { addProperty } = useProperties();
     
-    const [formData, setFormData] = useState<Omit<Property, 'id' | 'images' | 'videos' | 'location'>>({
+    const [formData, setFormData] = useState<Omit<Property, 'id' | 'images' | 'videos' | 'location'> & { latitude?: string | number; longitude?: string | number }>({
         title: '',
         description: '',
         type: PROPERTY_TYPES[0],
@@ -113,8 +113,8 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         crossStreet: '',
         zipCode: '',
         showExactLocation: true,
-        latitude: 0, // Coordenadas vacías por defecto
-        longitude: 0, // Coordenadas vacías por defecto
+        latitude: '', // Coordenadas como string para preservar formato decimal
+        longitude: '', // Coordenadas como string para preservar formato decimal
         amenities: [],
         status: 'For Sale',
         videos: [],
@@ -142,45 +142,18 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         const isNumeric = ['price', 'rentPrice', 'bedrooms', 'bathrooms', 'halfBathrooms', 'parkingSpaces', 'constructionArea', 'landArea', 'landDepth', 'landFront', 'constructionYear', 'floorNumber', 'buildingFloors', 'maintenanceFee', 'latitude', 'longitude'].includes(name);
 
         if (isNumeric) {
-            // Para coordenadas, manejar como texto para evitar problemas de borrado
+            // Para coordenadas, manejar como texto para preservar formato decimal
             if (name === 'latitude' || name === 'longitude') {
                 // DEBUG: Mostrar valor original
                 console.log(`🔍 Coordenada ${name}:`, { original: value });
                 
-                // Permitir valores vacíos, parciales y negativos durante la escritura
-                if (value === '' || value === '-' || value === '.' || value === '-.') {
+                // Permitir cualquier entrada de texto que parezca un número decimal
+                if (value === '' || value === '-' || value === '.' || value === '-.' || 
+                    value.match(/^-?\d*\.?\d*$/)) {
                     setFormData(prev => ({ ...prev, [name]: value }));
-                    return;
-                }
-                
-                // Permitir escritura parcial de números decimales
-                if (value.match(/^-?\d*\.?\d*$/)) {
-                    const numValue = parseFloat(value);
-                    
-                    // Solo validar si es un número válido completo
-                    if (!isNaN(numValue)) {
-                        // CORRECCIÓN: Validar rangos pero no corregir automáticamente
-                        if (name === 'latitude') {
-                            if (numValue < -90 || numValue > 90) {
-                                console.warn(`⚠️ Latitud fuera de rango: ${numValue}`);
-                            }
-                        } else if (name === 'longitude') {
-                            if (numValue < -180 || numValue > 180) {
-                                console.warn(`⚠️ Longitud fuera de rango: ${numValue}`);
-                            }
-                            if (numValue > -20 && numValue < 0) {
-                                console.warn(`⚠️ Longitud sospechosa: ${numValue}, posiblemente falta el 1`);
-                            }
-                        }
-                        
-                        setFormData(prev => ({ ...prev, [name]: numValue }));
-                    } else {
-                        // Si no es un número válido completo, mantener el texto para permitir escritura parcial
-                        setFormData(prev => ({ ...prev, [name]: value }));
-                    }
                 } else {
-                    // Si no coincide con el patrón de número decimal, mantener el valor anterior
-                    console.warn(`⚠️ Valor inválido para ${name}: ${value}`);
+                    // Si no es un formato válido, mantener el valor anterior
+                    console.warn(`⚠️ Formato inválido para ${name}: ${value}`);
                 }
             } else {
                 setFormData(prev => ({ ...prev, [name]: Number(value) }));
@@ -241,7 +214,11 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                 }
             }
             
-            console.log('🔍 Coordenadas asignadas:', { latitude, longitude });
+            // CORRECCIÓN: Redondear a 6 decimales para evitar problemas de precisión
+            latitude = Math.round(latitude * 1000000) / 1000000;
+            longitude = Math.round(longitude * 1000000) / 1000000;
+            
+            console.log('🔍 Coordenadas asignadas (redondeadas):', { latitude, longitude });
             
             // Actualizar ambos campos
             setFormData(prev => ({
@@ -253,7 +230,9 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
             // Si no es un par de coordenadas, pegar normalmente
             const numValue = parseFloat(pastedText);
             if (!isNaN(numValue)) {
-                setFormData(prev => ({ ...prev, [fieldName]: numValue }));
+                // Redondear también valores individuales
+                const roundedValue = Math.round(numValue * 1000000) / 1000000;
+                setFormData(prev => ({ ...prev, [fieldName]: roundedValue }));
             } else {
                 // Si no es un número válido, mantener el texto para permitir escritura parcial
                 setFormData(prev => ({ ...prev, [fieldName]: pastedText }));
@@ -269,6 +248,20 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
             } else {
                 return { ...prev, amenities: [...currentAmenities, amenity] };
             }
+        });
+    };
+
+    // Función para manejar políticas (radio buttons) - solo una opción por grupo
+    const handlePolicyToggle = (selectedPolicy: string, conflictingPolicy: string) => {
+        setFormData(prev => {
+            const currentAmenities = prev.amenities || [];
+            // Remover la política conflictiva si existe
+            const filteredAmenities = currentAmenities.filter(a => a !== conflictingPolicy);
+            // Agregar la política seleccionada si no existe
+            if (!filteredAmenities.includes(selectedPolicy)) {
+                return { ...prev, amenities: [...filteredAmenities, selectedPolicy] };
+            }
+            return { ...prev, amenities: filteredAmenities };
         });
     };
     
@@ -405,14 +398,46 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         setIsLoading(true);
 
         try {
+            // Preparar datos para envío, convirtiendo coordenadas de texto a número
+            const submitData = { ...formData };
+            
+            // Convertir coordenadas de texto a número y redondear
+            if (submitData.latitude) {
+                const latValue = typeof submitData.latitude === 'string' ? parseFloat(submitData.latitude) : submitData.latitude;
+                if (!isNaN(latValue)) {
+                    submitData.latitude = Math.round(latValue * 1000000) / 1000000;
+                }
+            }
+            
+            if (submitData.longitude) {
+                const lngValue = typeof submitData.longitude === 'string' ? parseFloat(submitData.longitude) : submitData.longitude;
+                if (!isNaN(lngValue)) {
+                    submitData.longitude = Math.round(lngValue * 1000000) / 1000000;
+                }
+            }
+            
+            // Validar coordenadas antes de enviar
+            if (submitData.latitude && submitData.longitude) {
+                if (submitData.latitude < -90 || submitData.latitude > 90) {
+                    alert('La latitud debe estar entre -90 y 90 grados');
+                    setIsLoading(false);
+                    return;
+                }
+                if (submitData.longitude < -180 || submitData.longitude > 180) {
+                    alert('La longitud debe estar entre -180 y 180 grados');
+                    setIsLoading(false);
+                    return;
+                }
+            }
+            
             // Comprimir imágenes antes de enviar a Firebase
             const imagePromises = imageFiles.map(file => compressImage(file, 800, 0.7));
             const images = await Promise.all(imagePromises);
 
-            const locationString = `${formData.city}, ${formData.state}`;
+            const locationString = `${submitData.city}, ${submitData.state}`;
 
             const newProperty: Omit<Property, 'id'> = {
-                ...(formData as any), // Cast to any to handle optional number fields
+                ...(submitData as any), // Cast to any to handle optional number fields
                 location: locationString,
                 images,
                 videos: videoUrls, // URLs de YouTube
@@ -666,14 +691,17 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                  <input
                                      type="text"
                                      name="latitude"
-                                     value={formData.latitude || ''}
+                                     value={formData.latitude ?? ''}
                                      onChange={handleInputChange}
                                      onPaste={handleCoordinatePaste}
                                      placeholder="Ej: 21.1098"
                                      className="mt-1 block w-full input-style"
                                  />
                                  <p className="text-xs text-gray-500 mt-1">Coordenada norte-sur (-90 a 90)</p>
-                                 {formData.latitude && (formData.latitude < -90 || formData.latitude > 90) && (
+                                 {formData.latitude && (() => {
+                                     const lat = typeof formData.latitude === 'string' ? parseFloat(formData.latitude) : formData.latitude;
+                                     return !isNaN(lat) && (lat < -90 || lat > 90);
+                                 })() && (
                                      <p className="text-xs text-red-500 mt-1">⚠️ Latitud fuera de rango válido</p>
                                  )}
                              </div>
@@ -682,14 +710,17 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                  <input
                                      type="text"
                                      name="longitude"
-                                     value={formData.longitude || ''}
+                                     value={formData.longitude ?? ''}
                                      onChange={handleInputChange}
                                      onPaste={handleCoordinatePaste}
                                      placeholder="Ej: -101.6878"
                                      className="mt-1 block w-full input-style"
                                  />
                                  <p className="text-xs text-gray-500 mt-1">Coordenada este-oeste (-180 a 180)</p>
-                                 {formData.longitude && (formData.longitude < -180 || formData.longitude > 180) && (
+                                 {formData.longitude && (() => {
+                                     const lng = typeof formData.longitude === 'string' ? parseFloat(formData.longitude) : formData.longitude;
+                                     return !isNaN(lng) && (lng < -180 || lng > 180);
+                                 })() && (
                                      <p className="text-xs text-red-500 mt-1">⚠️ Longitud fuera de rango válido</p>
                                  )}
                              </div>
@@ -723,12 +754,73 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                                 <div key={category}>
                                     <h4 className="font-semibold text-gray-800 border-b pb-2 mb-3">{category}</h4>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        {amenities.map(amenity => (
-                                            <label key={amenity} className="flex items-center space-x-2 cursor-pointer">
-                                                <input type="checkbox" checked={formData.amenities.includes(amenity)} onChange={() => handleAmenityToggle(amenity)} className="h-4 w-4 text-inverland-green rounded border-gray-300 focus:ring-inverland-green"/>
-                                                <span className="text-gray-700 text-sm">{amenity}</span>
-                                            </label>
-                                        ))}
+                                        {category === 'Políticas' ? (
+                                            // Para políticas, usar radio buttons para evitar conflictos
+                                            <>
+                                                <div className="col-span-full">
+                                                    <h5 className="font-medium text-gray-700 mb-2">Mascotas:</h5>
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                                            <input 
+                                                                type="radio" 
+                                                                name="pets" 
+                                                                value="Mascotas permitidas"
+                                                                checked={formData.amenities.includes('Mascotas permitidas')}
+                                                                onChange={() => handlePolicyToggle('Mascotas permitidas', 'No se aceptan mascotas')}
+                                                                className="h-4 w-4 text-inverland-green border-gray-300 focus:ring-inverland-green"
+                                                            />
+                                                            <span className="text-gray-700 text-sm">Mascotas permitidas</span>
+                                                        </label>
+                                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                                            <input 
+                                                                type="radio" 
+                                                                name="pets" 
+                                                                value="No se aceptan mascotas"
+                                                                checked={formData.amenities.includes('No se aceptan mascotas')}
+                                                                onChange={() => handlePolicyToggle('No se aceptan mascotas', 'Mascotas permitidas')}
+                                                                className="h-4 w-4 text-inverland-green border-gray-300 focus:ring-inverland-green"
+                                                            />
+                                                            <span className="text-gray-700 text-sm">No se aceptan mascotas</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-full">
+                                                    <h5 className="font-medium text-gray-700 mb-2">Fumar:</h5>
+                                                    <div className="space-y-2">
+                                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                                            <input 
+                                                                type="radio" 
+                                                                name="smoking" 
+                                                                value="Permitido fumar"
+                                                                checked={formData.amenities.includes('Permitido fumar')}
+                                                                onChange={() => handlePolicyToggle('Permitido fumar', 'Prohibido fumar')}
+                                                                className="h-4 w-4 text-inverland-green border-gray-300 focus:ring-inverland-green"
+                                                            />
+                                                            <span className="text-gray-700 text-sm">Permitido fumar</span>
+                                                        </label>
+                                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                                            <input 
+                                                                type="radio" 
+                                                                name="smoking" 
+                                                                value="Prohibido fumar"
+                                                                checked={formData.amenities.includes('Prohibido fumar')}
+                                                                onChange={() => handlePolicyToggle('Prohibido fumar', 'Permitido fumar')}
+                                                                className="h-4 w-4 text-inverland-green border-gray-300 focus:ring-inverland-green"
+                                                            />
+                                                            <span className="text-gray-700 text-sm">Prohibido fumar</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            // Para otras categorías, usar checkboxes normales
+                                            amenities.map(amenity => (
+                                                <label key={amenity} className="flex items-center space-x-2 cursor-pointer">
+                                                    <input type="checkbox" checked={formData.amenities.includes(amenity)} onChange={() => handleAmenityToggle(amenity)} className="h-4 w-4 text-inverland-green rounded border-gray-300 focus:ring-inverland-green"/>
+                                                    <span className="text-gray-700 text-sm">{amenity}</span>
+                                                </label>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
                             ))}

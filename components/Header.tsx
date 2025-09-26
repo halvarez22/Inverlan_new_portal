@@ -58,9 +58,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout, onNavClick, onOpe
                     <div className="hidden lg:flex items-center space-x-3 xl:space-x-4">
                         {isAuthenticated ? (
                             <>
-                                <button onClick={() => onNavigate('home')} className="text-inverland-off-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-light-blue/20 transition-all duration-300 font-heading">
-                                    Inicio
-                                </button>
                                 <button onClick={() => onNavigate('userPortal')} className="text-inverland-off-white font-medium px-3 py-2 lg:px-5 rounded-xl hover:bg-inverland-light-blue/20 transition-all duration-300 font-heading">
                                     Portal
                                 </button>
@@ -114,9 +111,6 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onLogout, onNavClick, onOpe
                                 </>
                             ) : (
                                 <>
-                                    <button onClick={() => { onNavigate('home'); setIsMenuOpen(false); }} className="block w-full text-left text-white font-medium px-3 py-2 rounded-md hover:bg-inverland-blue transition-colors duration-300">
-                                        Inicio
-                                    </button>
                                     <button onClick={() => { onNavigate('userPortal'); setIsMenuOpen(false); }} className="block w-full text-left text-white font-medium px-3 py-2 rounded-md hover:bg-inverland-blue transition-colors duration-300">
                                         Portal
                                     </button>

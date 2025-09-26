@@ -4,8 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 declare const L: any;
 
 interface SinglePropertyMapProps {
-    lat: number;
-    lng: number;
+    lat: number | string;
+    lng: number | string;
     popupText: string;
 }
 
@@ -16,6 +16,10 @@ const SinglePropertyMap: React.FC<SinglePropertyMapProps> = ({ lat, lng, popupTe
 
     useEffect(() => {
         if (mapContainerRef.current) {
+            // Convertir strings a números si es necesario
+            const latNum = typeof lat === 'string' ? parseFloat(lat) : lat;
+            const lngNum = typeof lng === 'string' ? parseFloat(lng) : lng;
+            
             // Clean up existing map if it exists
             if (mapRef.current) {
                 mapRef.current.remove();
@@ -23,9 +27,9 @@ const SinglePropertyMap: React.FC<SinglePropertyMapProps> = ({ lat, lng, popupTe
             }
 
             // Validate coordinates - más estricto para evitar mapas incorrectos
-            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0 || 
-                lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-                console.warn('Invalid coordinates:', { lat, lng });
+            if (isNaN(latNum) || isNaN(lngNum) || latNum === 0 || lngNum === 0 || 
+                latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) {
+                console.warn('Invalid coordinates:', { lat, lng, latNum, lngNum });
                 setMapError('Coordenadas no configuradas');
                 return;
             }
@@ -37,18 +41,18 @@ const SinglePropertyMap: React.FC<SinglePropertyMapProps> = ({ lat, lng, popupTe
                 if (mapContainerRef.current && !mapRef.current) {
                     try {
                         // Initialize map with correct coordinates
-                        const map = L.map(mapContainerRef.current).setView([lat, lng], 15);
+                        const map = L.map(mapContainerRef.current).setView([latNum, lngNum], 15);
                         
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         }).addTo(map);
 
                         // Add marker with exact coordinates
-                        const marker = L.marker([lat, lng]).addTo(map);
+                        const marker = L.marker([latNum, lngNum]).addTo(map);
                         marker.bindPopup(`
                             <div style="text-align: center;">
                                 <strong>${popupText}</strong><br>
-                                <small>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}</small>
+                                <small>Lat: ${latNum.toFixed(6)}<br>Lng: ${lngNum.toFixed(6)}</small>
                             </div>
                         `).openPopup();
 
