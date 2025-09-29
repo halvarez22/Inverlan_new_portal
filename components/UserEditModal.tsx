@@ -51,7 +51,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, userToEd
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validate()) return;
         
@@ -62,7 +62,7 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ isOpen, onClose, userToEd
             commissionRate: userToEdit.role === 'agent' ? formData.commissionRate / 100 : undefined,
         };
 
-        updateUser(updatedUserData);
+        await updateUser(updatedUserData);
         onClose();
     };
 

@@ -6,7 +6,7 @@ import { useProperties } from './PropertyContext';
 import { useClients } from './ClientContext';
 
 const UserManagementPage: React.FC = () => {
-    const { users, registerUser, deleteUser, statusMessage, clearStatusMessage } = useAuth();
+    const { users, registerUser, deleteUser, forceCleanDuplicates, diagnoseUsers, statusMessage, clearStatusMessage } = useAuth();
     const { properties } = useProperties();
     const { clients } = useClients();
     
@@ -57,7 +57,7 @@ const UserManagementPage: React.FC = () => {
         }));
     };
 
-    const handleRegister = (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         clearStatusMessage();
         if (!formData.username || !formData.password || !formData.name) {
@@ -73,14 +73,24 @@ const UserManagementPage: React.FC = () => {
             commissionRate: formData.role === 'agent' ? formData.commissionRate / 100 : undefined,
         };
 
-        registerUser(newUser);
+        await registerUser(newUser);
         setFormData(initialFormState); // Reset form optimistically
     };
 
-    const handleDelete = (userId: string, userName: string) => {
+    const handleDelete = async (userId: string, userName: string) => {
         if (window.confirm(`¿Estás seguro de que deseas eliminar al usuario "${userName}"? Esta acción no se puede deshacer.`)) {
-            deleteUser(userId, userName, properties, clients);
+            await deleteUser(userId, userName, properties, clients);
         }
+    };
+
+    const handleCleanDuplicates = async () => {
+        if (window.confirm('¿Estás seguro de que deseas limpiar todos los usuarios duplicados? Esta acción eliminará los duplicados manteniendo solo la primera ocurrencia de cada usuario.')) {
+            await forceCleanDuplicates();
+        }
+    };
+
+    const handleDiagnoseUsers = async () => {
+        await diagnoseUsers();
     };
 
     return (
@@ -132,6 +142,27 @@ const UserManagementPage: React.FC = () => {
                                     </button>
                                 </div>
                             </form>
+                            
+                            {/* Clean Duplicates Button */}
+                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                <div className="space-y-3">
+                                    <button 
+                                        onClick={handleDiagnoseUsers}
+                                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                    >
+                                        🔍 Diagnosticar Usuarios
+                                    </button>
+                                    <button 
+                                        onClick={handleCleanDuplicates}
+                                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                    >
+                                        🧹 Limpiar Usuarios Duplicados
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2 text-center">
+                                    Primero diagnostica, luego limpia duplicados
+                                </p>
+                            </div>
                         </div>
 
                         {/* Users List */}
