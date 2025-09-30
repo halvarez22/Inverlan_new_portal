@@ -18,19 +18,30 @@ const PropertyContext = createContext<PropertyContextType | undefined>(undefined
 export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [properties, setProperties] = useState<Property[]>([]);
 
+    const isValidImageSrc = (src?: string) => {
+        if (!src) return false;
+        return src.startsWith('http') || src.startsWith('data:') || src.startsWith('blob:');
+    };
+
+    const withSafeImages = (property: Property): Property => {
+        const safeImages = (property.images || []).map(img => isValidImageSrc(img) ? img : 'https://picsum.photos/600/400?grayscale');
+        const safeMainIndex = Number.isInteger(property.mainPhotoIndex) && property.mainPhotoIndex! >= 0 && property.mainPhotoIndex! < safeImages.length ? property.mainPhotoIndex : 0;
+        return { ...property, images: safeImages, mainPhotoIndex: safeMainIndex };
+    };
+
     useEffect(() => {
         const loadProperties = async () => {
             try {
                 const firebaseProperties = await propertyService.getAllProperties();
                 if (firebaseProperties.length > 0) {
-                    setProperties(firebaseProperties);
+                    setProperties(firebaseProperties.map(withSafeImages));
                 } else {
                     // Si no hay propiedades en Firebase
                     const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                     
                     if (isDevelopment) {
                         // En desarrollo: usar datos de muestra
-                        setProperties(SAMPLE_PROPERTIES);
+                        setProperties(SAMPLE_PROPERTIES.map(withSafeImages));
                         // Migrar datos de muestra a Firebase
                         try {
                             const [firebaseClients, firebaseCampaigns] = await Promise.all([
@@ -60,13 +71,14 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
                 try {
                     const storedProperties = localStorage.getItem('inverland_properties');
                     if (storedProperties) {
-                        setProperties(JSON.parse(storedProperties));
+                        const parsed: Property[] = JSON.parse(storedProperties);
+                        setProperties(parsed.map(withSafeImages));
                     } else {
-                        setProperties(SAMPLE_PROPERTIES);
+                        setProperties(SAMPLE_PROPERTIES.map(withSafeImages));
                     }
                 } catch (localError) {
                     console.error("Failed to access localStorage for properties:", localError);
-                    setProperties(SAMPLE_PROPERTIES);
+                    setProperties(SAMPLE_PROPERTIES.map(withSafeImages));
                 }
             }
         };
@@ -87,11 +99,11 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
         try {
             const newPropertyId = await propertyService.addProperty(property);
             const newProperty: Property = { ...property, id: newPropertyId };
-            setProperties(prev => [newProperty, ...prev]);
+            setProperties(prev => [withSafeImages(newProperty), ...prev]);
             
             // También guardar en localStorage como backup
             try {
-                const updatedProperties = [newProperty, ...properties];
+                const updatedProperties = [withSafeImages(newProperty), ...properties.map(withSafeImages)];
                 localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
             } catch (localError) {
                 console.warn("Failed to save to localStorage backup:", localError);
@@ -126,7 +138,7 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
             console.error("Failed to update property in Firebase:", error);
             // Fallback a localStorage
             const updatedProperties = properties.map(prop => 
-                prop.id === updatedProperty.id ? updatedProperty : prop
+                prop.id === updatedProperty.id ? withSafeImages(updatedProperty) : withSafeImages(prop)
             );
             setProperties(updatedProperties);
             localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
