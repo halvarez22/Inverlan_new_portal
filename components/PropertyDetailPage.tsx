@@ -41,7 +41,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                             {/* Main Image with Navigation */}
                             <div className="relative group">
                                 <img 
-                                    src={property.images[currentImageIndex] || 'https://picsum.photos/1200/800?grayscale'} 
+                                    src={(() => { const s = property.images[currentImageIndex]; return s && (s.startsWith('http') || s.startsWith('data:') || s.startsWith('blob:')) ? s : 'https://picsum.photos/1200/800?grayscale'; })()} 
                                     alt={property.title} 
                                     className="w-full h-auto max-h-[600px] object-cover rounded-lg shadow-lg" 
                                 />
@@ -84,7 +84,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                                     {property.images.map((img, index) => (
                                         <img 
                                             key={index} 
-                                            src={img} 
+                                            src={(img && (img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:'))) ? img : 'https://picsum.photos/300/200?grayscale'} 
                                             alt={`${property.title} ${index + 1}`} 
                                             className={`w-full h-16 sm:h-20 object-cover rounded-md cursor-pointer transition-all duration-200 ${
                                                 index === currentImageIndex 

@@ -130,7 +130,7 @@ const AgentPortal: React.FC<AgentPortalProps> = ({ onNavigate, onViewClient, onV
                                     onClick={() => onViewProperty(prop)} 
                                     className={`rounded-lg overflow-hidden shadow-sm cursor-pointer hover:shadow-lg transition-all duration-300 ${isSelected ? 'border-2 border-inverland-green ring-2 ring-inverland-green/30' : 'border border-gray-200'}`}
                                 >
-                                    <img src={prop.images[0]} alt={prop.title} className="w-full h-40 object-cover" />
+                                    <img src={(prop.images[0] && (prop.images[0].startsWith('http') || prop.images[0].startsWith('data:') || prop.images[0].startsWith('blob:'))) ? prop.images[0] : 'https://picsum.photos/600/400?grayscale'} alt={prop.title} className="w-full h-40 object-cover" />
                                     <div className="p-4">
                                         <p className="font-bold text-inverland-dark truncate">{prop.title}</p>
                                         <p className="text-sm text-gray-500">{prop.location}</p>

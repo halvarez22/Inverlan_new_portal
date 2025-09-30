@@ -26,6 +26,16 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewProperty, o
         return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
     };
 
+    const getValidImageSrc = (src?: string) => {
+        if (!src) return 'https://picsum.photos/600/400?grayscale';
+        const isValid = src.startsWith('http') || src.startsWith('data:') || src.startsWith('blob:');
+        return isValid ? src : 'https://picsum.photos/600/400?grayscale';
+    };
+
+    const displayPrice = property.operationType.includes('Renta') && (property.rentPrice ?? 0) > 0
+        ? formatPrice(property.rentPrice as number)
+        : formatPrice(property.price);
+
     return (
         <div 
             onClick={() => onViewProperty(property)} 
@@ -34,7 +44,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewProperty, o
             className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 ease-in-out cursor-pointer group"
         >
             <div className="relative">
-                <img src={property.images[0] || 'https://picsum.photos/600/400?grayscale'} alt={property.title} className="w-full h-56 object-cover" />
+                <img src={getValidImageSrc(property.images[0])} alt={property.title} className="w-full h-56 object-cover" />
                 <div className="absolute top-4 left-4 bg-inverland-green text-white px-3 py-1 text-sm font-semibold rounded-full">{property.type}</div>
                 <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-black/70 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 text-white">
@@ -43,7 +53,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewProperty, o
                 </div>
             </div>
             <div className="p-6">
-                <p className="text-2xl font-extrabold text-inverland-dark mb-4">{formatPrice(property.price)}</p>
+                <p className="text-2xl font-extrabold text-inverland-dark mb-4">{displayPrice}</p>
                 <div className="flex justify-around text-gray-600 border-t pt-4">
                     <span className="text-sm">🛏️ {property.bedrooms} hab.</span>
                     <span className="text-sm">🛁 {property.bathrooms} baños</span>
@@ -246,7 +256,7 @@ const PropertyListings: React.FC<PropertyListingsProps> = ({ properties, filters
                         role="tooltip"
                     >
                         <img 
-                            src={preview.property.images[0] || 'https://picsum.photos/600/400?grayscale'} 
+                            src={(() => { const s = preview.property.images[0]; return s && (s.startsWith('http') || s.startsWith('data:') || s.startsWith('blob:')) ? s : 'https://picsum.photos/600/400?grayscale'; })()} 
                             alt={preview.property.title} 
                             className="w-full h-40 object-cover rounded-md mb-3" 
                         />

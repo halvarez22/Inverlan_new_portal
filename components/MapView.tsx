@@ -43,12 +43,21 @@ const MapView: React.FC<MapViewProps> = ({ properties, onViewProperty }) => {
             const newMarkers = properties.map(property => {
                 const marker = L.marker([property.latitude, property.longitude]).addTo(mapRef.current);
                 
+                const safeImg = (() => {
+                    const s = property.images[0];
+                    return s && (s.startsWith('http') || s.startsWith('data:') || s.startsWith('blob:')) ? s : 'https://picsum.photos/600/400?grayscale';
+                })();
+
+                const priceText = property.operationType.includes('Renta') && (property.rentPrice ?? 0) > 0
+                    ? formatPrice(property.rentPrice as number)
+                    : formatPrice(property.price);
+
                 const popupContent = `
                     <div style="width: 200px; font-family: 'Inter', sans-serif; line-height: 1.5;">
-                        <img src="${property.images[0] || 'https://picsum.photos/600/400?grayscale'}" alt="${property.title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px;" />
+                        <img src="${safeImg}" alt="${property.title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px;" />
                         <h4 style="margin: 8px 0 4px; font-weight: 700; font-size: 14px; color: #0F172A;">${property.title}</h4>
                         <p style="margin: 0; font-size: 12px; color: #4B5563;">${property.location}</p>
-                        <p style="margin: 4px 0 8px; font-weight: 800; font-size: 16px; color: #1E3A8A;">${formatPrice(property.price)}</p>
+                        <p style="margin: 4px 0 8px; font-weight: 800; font-size: 16px; color: #1E3A8A;">${priceText}</p>
                         <button id="view-details-${property.id}" style="width: 100%; padding: 8px; background-color: #083d5c; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#062a40'" onmouseout="this.style.backgroundColor='#083d5c'">Ver Detalles</button>
                     </div>
                 `;
