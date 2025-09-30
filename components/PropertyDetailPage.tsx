@@ -13,6 +13,9 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price);
     };
+    const displayPrice = property.operationType.includes('Renta') && (property.rentPrice ?? 0) > 0
+        ? formatPrice(property.rentPrice as number)
+        : formatPrice(property.price);
 
     const nextImage = () => {
         setCurrentImageIndex((prev) => (prev + 1) % property.images.length);
@@ -41,7 +44,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                             {/* Main Image with Navigation */}
                             <div className="relative group">
                                 <img 
-                                    src={(() => { const s = property.images[currentImageIndex]; return s && (s.startsWith('http') || s.startsWith('data:') || s.startsWith('blob:')) ? s : 'https://picsum.photos/1200/800?grayscale'; })()} 
+                                    src={(() => { const s = property.images[currentImageIndex]; return s && (s.startsWith('http') || s.startsWith('data:')) ? s : 'https://picsum.photos/1200/800?grayscale'; })()} 
                                     alt={property.title} 
                                     className="w-full h-auto max-h-[600px] object-cover rounded-lg shadow-lg" 
                                 />
@@ -84,7 +87,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                                     {property.images.map((img, index) => (
                                         <img 
                                             key={index} 
-                                            src={(img && (img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:'))) ? img : 'https://picsum.photos/300/200?grayscale'} 
+                                            src={(img && (img.startsWith('http') || img.startsWith('data:'))) ? img : 'https://picsum.photos/300/200?grayscale'} 
                                             alt={`${property.title} ${index + 1}`} 
                                             className={`w-full h-16 sm:h-20 object-cover rounded-md cursor-pointer transition-all duration-200 ${
                                                 index === currentImageIndex 
@@ -102,7 +105,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                         <div className="border-b pb-6">
                             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-inverland-dark">{property.title}</h1>
                             <p className="text-lg text-gray-500 mt-2">{property.location}</p>
-                            <p className="text-4xl font-bold text-inverland-green mt-4">{formatPrice(property.price)}</p>
+                            <p className="text-4xl font-bold text-inverland-green mt-4">{displayPrice}</p>
                         </div>
                         
                         {/* Key Details */}

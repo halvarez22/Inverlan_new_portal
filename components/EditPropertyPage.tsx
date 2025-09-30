@@ -39,7 +39,7 @@ interface EditPropertyPageProps {
 }
 
 const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
-    const { properties, updateProperty } = useProperties();
+    const { properties, updateProperty, deleteProperty } = useProperties();
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Omit<Property, 'id' | 'images' | 'videos' | 'location'>>({
@@ -125,7 +125,7 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
     };
 
     // Función para manejar cambio de archivos de imagen
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
             // Verificar límite de 10 fotos por propiedad
@@ -137,11 +137,19 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
                 alert(`Máximo 10 fotos por propiedad. Actualmente tienes ${currentImageCount} fotos y estás intentando agregar ${newFilesCount}. Solo se agregarán ${10 - currentImageCount} fotos.`);
                 const allowedFiles = files.slice(0, 10 - currentImageCount);
                 setImageFiles(prev => [...prev, ...allowedFiles]);
-                const newPreviews = allowedFiles.map(file => URL.createObjectURL(file as File));
+                // Convertir archivos a data URLs para persistencia
+                const newPreviews = await Promise.all(allowedFiles.map(async file => {
+                    const compressed = await compressImage(file, 800, 0.7);
+                    return compressed; // Ya es data URL
+                }));
                 setImagePreviews(prev => [...prev, ...newPreviews]);
             } else {
                 setImageFiles(prev => [...prev, ...files]);
-                const newPreviews = files.map(file => URL.createObjectURL(file as File));
+                // Convertir archivos a data URLs para persistencia
+                const newPreviews = await Promise.all(files.map(async file => {
+                    const compressed = await compressImage(file, 800, 0.7);
+                    return compressed; // Ya es data URL
+                }));
                 setImagePreviews(prev => [...prev, ...newPreviews]);
             }
         }
@@ -223,12 +231,8 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
         setIsLoading(true);
 
         try {
-            // Comprimir nuevas imágenes antes de enviar a Firebase
-            const newImagePromises = imageFiles.map(file => compressImage(file, 800, 0.7));
-            const newImages = await Promise.all(newImagePromises);
-            
-            // Combinar imágenes existentes con las nuevas
-            const allImages = [...imagePreviews, ...newImages];
+            // Las imágenes ya están comprimidas como data URLs en imagePreviews
+            const allImages = imagePreviews;
 
             const locationString = `${formData.city}, ${formData.state}`;
 
@@ -253,6 +257,105 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleDeleteProperty = async () => {
+        if (!selectedProperty) return;
+
+        // Validaciones de seguridad para eliminar propiedad
+        const canDelete = await validatePropertyDeletion(selectedProperty);
+        
+        if (!canDelete.canDelete) {
+            alert(`❌ No se puede eliminar esta propiedad:\n\n${canDelete.reason}`);
+            return;
+        }
+
+        // Confirmación final
+        const confirmDelete = window.confirm(
+            `⚠️ ¿Estás seguro de que deseas eliminar esta propiedad?\n\n` +
+            `📋 Propiedad: ${selectedProperty.title}\n` +
+            `📍 Ubicación: ${selectedProperty.location}\n\n` +
+            `Esta acción NO se puede deshacer.`
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+            setIsLoading(true);
+            await deleteProperty(selectedProperty.id);
+            alert('✅ Propiedad eliminada exitosamente');
+            
+            // Limpiar formulario y volver a la lista
+            setIsEditing(false);
+            setSelectedProperty(null);
+            resetForm();
+            
+        } catch (error) {
+            console.error("Error deleting property:", error);
+            alert("❌ Hubo un error al eliminar la propiedad. Por favor, inténtelo de nuevo.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const validatePropertyDeletion = async (property: Property): Promise<{ canDelete: boolean; reason: string }> => {
+        // Por ahora, todas las propiedades se pueden eliminar ya que no están asignadas a agentes
+        // En el futuro, aquí se validarán:
+        // - Si está asignada a un agente
+        // - Si tiene seguimientos/actividades
+        // - Si tiene clientes asignados
+        // - Si tiene campañas activas
+        
+        return {
+            canDelete: true,
+            reason: "✅ Propiedad disponible para eliminación"
+        };
+    };
+
+    const resetForm = () => {
+        setFormData({
+            title: '',
+            description: '',
+            type: PROPERTY_TYPES[0],
+            operationType: 'Venta',
+            price: 0,
+            rentPrice: 0,
+            showPrice: true,
+            bedrooms: 0,
+            bathrooms: 0,
+            halfBathrooms: 0,
+            parkingSpaces: 0,
+            constructionArea: 0,
+            landArea: 0,
+            landDepth: 0,
+            landFront: 0,
+            constructionYear: 0,
+            floorNumber: 0,
+            buildingFloors: 0,
+            maintenanceFee: 0,
+            internalKey: '',
+            keyLockerCode: '',
+            country: 'México',
+            state: '',
+            city: '',
+            neighborhood: '',
+            street: '',
+            streetNumber: '',
+            interiorNumber: '',
+            crossStreet: '',
+            zipCode: '',
+            showExactLocation: true,
+            latitude: 0,
+            longitude: 0,
+            amenities: [],
+            status: 'Disponible',
+            mainPhotoIndex: 0,
+        });
+        setImageFiles([]);
+        setImagePreviews([]);
+        setVideoUrls([]);
+        setVideo360Url('');
+        setMainPhotoIndex(0);
     };
 
     const cancelEdit = () => {
@@ -686,21 +789,31 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
                                 </fieldset>
 
                                 {/* Botones */}
-                                <div className="flex justify-end space-x-4">
+                                <div className="flex justify-between">
                                     <button
                                         type="button"
-                                        onClick={cancelEdit}
-                                        className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
+                                        onClick={handleDeleteProperty}
                                         disabled={isLoading}
-                                        className="px-6 py-3 bg-inverland-blue text-white rounded-lg hover:bg-inverland-light-blue transition-colors disabled:opacity-50"
+                                        className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                                     >
-                                        {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+                                        {isLoading ? 'Eliminando...' : '🗑️ Eliminar Propiedad'}
                                     </button>
+                                    <div className="flex space-x-4">
+                                        <button
+                                            type="button"
+                                            onClick={cancelEdit}
+                                            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="px-6 py-3 bg-inverland-blue text-white rounded-lg hover:bg-inverland-light-blue transition-colors disabled:opacity-50"
+                                        >
+                                            {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -745,12 +858,22 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
                                         <h4 className="font-bold text-lg text-inverland-black mb-2">{property.title}</h4>
                                         <p className="text-gray-600 text-sm mb-2">{property.location}</p>
                                         <p className="text-inverland-blue font-semibold">
-                                            {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(property.price)}
+                                            {(() => {
+                                                const isRent = property.operationType.includes('Renta');
+                                                const amount = isRent && (property.rentPrice ?? 0) > 0
+                                                    ? (property.rentPrice as number)
+                                                    : property.price;
+                                                return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+                                            })()}
                                         </p>
                                         <div className="mt-3 flex items-center justify-between">
                                             <span className="text-sm text-gray-500">{property.type}</span>
-                                            <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
-                                                {property.status}
+                                            <span className={`text-sm px-2 py-1 rounded ${
+                                                property.operationType.includes('Renta') 
+                                                    ? 'bg-blue-100 text-blue-800' 
+                                                    : 'bg-green-100 text-green-800'
+                                            }`}>
+                                                {property.operationType.includes('Renta') ? 'For Rent' : property.status}
                                             </span>
                                         </div>
                                     </div>

@@ -28,7 +28,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewProperty, o
 
     const getValidImageSrc = (src?: string) => {
         if (!src) return 'https://picsum.photos/600/400?grayscale';
-        const isValid = src.startsWith('http') || src.startsWith('data:') || src.startsWith('blob:');
+        const isValid = src.startsWith('http') || src.startsWith('data:');
         return isValid ? src : 'https://picsum.photos/600/400?grayscale';
     };
 
@@ -46,6 +46,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewProperty, o
             <div className="relative">
                 <img src={getValidImageSrc(property.images[0])} alt={property.title} className="w-full h-56 object-cover" />
                 <div className="absolute top-4 left-4 bg-inverland-green text-white px-3 py-1 text-sm font-semibold rounded-full">{property.type}</div>
+                <div className={`absolute top-4 right-4 px-3 py-1 text-sm font-semibold rounded-full ${
+                    property.operationType.includes('Renta') 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-green-500 text-white'
+                }`}>
+                    {property.operationType.includes('Renta') ? 'For Rent' : 'For Sale'}
+                </div>
                 <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-black/70 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 text-white">
                     <h3 className="text-xl font-bold">{property.title}</h3>
@@ -255,14 +262,29 @@ const PropertyListings: React.FC<PropertyListingsProps> = ({ properties, filters
                         style={{ top: `${preview.position.top}px`, left: `${preview.position.left}px` }}
                         role="tooltip"
                     >
-                        <img 
-                            src={(() => { const s = preview.property.images[0]; return s && (s.startsWith('http') || s.startsWith('data:') || s.startsWith('blob:')) ? s : 'https://picsum.photos/600/400?grayscale'; })()} 
-                            alt={preview.property.title} 
-                            className="w-full h-40 object-cover rounded-md mb-3" 
-                        />
+                        <div className="relative">
+                            <img 
+                                src={(() => { const s = preview.property.images[0]; return s && (s.startsWith('http') || s.startsWith('data:')) ? s : 'https://picsum.photos/600/400?grayscale'; })()} 
+                                alt={preview.property.title} 
+                                className="w-full h-40 object-cover rounded-md mb-3" 
+                            />
+                            <div className={`absolute top-2 right-2 px-2 py-1 text-xs font-semibold rounded-full ${
+                                preview.property.operationType.includes('Renta') 
+                                    ? 'bg-blue-500 text-white' 
+                                    : 'bg-green-500 text-white'
+                            }`}>
+                                {preview.property.operationType.includes('Renta') ? 'For Rent' : 'For Sale'}
+                            </div>
+                        </div>
                         <h3 className="text-lg font-bold text-inverland-dark truncate">{preview.property.title}</h3>
                         <p className="text-2xl font-extrabold text-inverland-dark my-2">
-                            {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(preview.property.price)}
+                            {(() => {
+                                const isRent = preview.property.operationType.includes('Renta');
+                                const amount = isRent && (preview.property.rentPrice ?? 0) > 0
+                                    ? (preview.property.rentPrice as number)
+                                    : preview.property.price;
+                                return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+                            })()}
                         </p>
                         <div className="flex justify-around text-gray-600 border-t pt-2 text-sm">
                             <span>🛏️ {preview.property.bedrooms} hab.</span>

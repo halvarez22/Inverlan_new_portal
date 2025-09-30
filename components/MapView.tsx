@@ -45,16 +45,22 @@ const MapView: React.FC<MapViewProps> = ({ properties, onViewProperty }) => {
                 
                 const safeImg = (() => {
                     const s = property.images[0];
-                    return s && (s.startsWith('http') || s.startsWith('data:') || s.startsWith('blob:')) ? s : 'https://picsum.photos/600/400?grayscale';
+                    return s && (s.startsWith('http') || s.startsWith('data:')) ? s : 'https://picsum.photos/600/400?grayscale';
                 })();
 
                 const priceText = property.operationType.includes('Renta') && (property.rentPrice ?? 0) > 0
                     ? formatPrice(property.rentPrice as number)
                     : formatPrice(property.price);
 
+                const operationType = property.operationType.includes('Renta') ? 'For Rent' : 'For Sale';
+                const operationColor = property.operationType.includes('Renta') ? '#3B82F6' : '#10B981';
+
                 const popupContent = `
                     <div style="width: 200px; font-family: 'Inter', sans-serif; line-height: 1.5;">
-                        <img src="${safeImg}" alt="${property.title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px;" />
+                        <div style="position: relative;">
+                            <img src="${safeImg}" alt="${property.title}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 4px;" />
+                            <div style="position: absolute; top: 8px; right: 8px; background-color: ${operationColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">${operationType}</div>
+                        </div>
                         <h4 style="margin: 8px 0 4px; font-weight: 700; font-size: 14px; color: #0F172A;">${property.title}</h4>
                         <p style="margin: 0; font-size: 12px; color: #4B5563;">${property.location}</p>
                         <p style="margin: 4px 0 8px; font-weight: 800; font-size: 16px; color: #1E3A8A;">${priceText}</p>

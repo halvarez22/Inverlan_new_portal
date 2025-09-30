@@ -20,7 +20,8 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const isValidImageSrc = (src?: string) => {
         if (!src) return false;
-        return src.startsWith('http') || src.startsWith('data:') || src.startsWith('blob:');
+        // Solo permitir URLs absolutas o data URLs. NO permitir blob: para persistencia/producción
+        return src.startsWith('http') || src.startsWith('data:');
     };
 
     const withSafeImages = (property: Property): Property => {
@@ -34,7 +35,22 @@ export const PropertyProvider: React.FC<{ children: ReactNode }> = ({ children }
             try {
                 const firebaseProperties = await propertyService.getAllProperties();
                 if (firebaseProperties.length > 0) {
-                    setProperties(firebaseProperties.map(withSafeImages));
+                    const safe = firebaseProperties.map(withSafeImages);
+                    setProperties(safe);
+
+                    // Migrar propiedades con imágenes inválidas (blob:/rutas locales) en Firebase
+                    const toMigrate = firebaseProperties.filter(p => (p.images || []).some(img => img && img.startsWith('blob:')));
+                    if (toMigrate.length > 0) {
+                        for (const p of toMigrate) {
+                            try {
+                                const migratedImages = (p.images || []).map(img => isValidImageSrc(img) ? img : 'https://picsum.photos/600/400?grayscale');
+                                const safeMainIndex = Number.isInteger(p.mainPhotoIndex) && (p.mainPhotoIndex as number) >= 0 && (p.mainPhotoIndex as number) < migratedImages.length ? p.mainPhotoIndex : 0;
+                                await propertyService.updateProperty(p.id, { images: migratedImages, mainPhotoIndex: safeMainIndex });
+                            } catch (e) {
+                                console.warn('No se pudo migrar imágenes inválidas para propiedad', p.id, e);
+                            }
+                        }
+                    }
                 } else {
                     // Si no hay propiedades en Firebase
                     const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';

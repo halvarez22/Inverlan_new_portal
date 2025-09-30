@@ -265,7 +265,7 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
         });
     };
     
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
             // Verificar límite de 10 fotos por propiedad
@@ -277,11 +277,19 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                 alert(`Máximo 10 fotos por propiedad. Actualmente tienes ${currentImageCount} fotos y estás intentando agregar ${newFilesCount}. Solo se agregarán ${10 - currentImageCount} fotos.`);
                 const allowedFiles = files.slice(0, 10 - currentImageCount);
                 setImageFiles(prev => [...prev, ...allowedFiles]);
-                const newPreviews = allowedFiles.map(file => URL.createObjectURL(file as File));
+                // Convertir archivos a data URLs para persistencia
+                const newPreviews = await Promise.all(allowedFiles.map(async (file: File) => {
+                    const compressed = await compressImage(file, 800, 0.7);
+                    return compressed; // Ya es data URL
+                }));
                 setImagePreviews(prev => [...prev, ...newPreviews]);
             } else {
                 setImageFiles(prev => [...prev, ...files]);
-                const newPreviews = files.map(file => URL.createObjectURL(file as File));
+                // Convertir archivos a data URLs para persistencia
+                const newPreviews = await Promise.all(files.map(async (file: File) => {
+                    const compressed = await compressImage(file, 800, 0.7);
+                    return compressed; // Ya es data URL
+                }));
                 setImagePreviews(prev => [...prev, ...newPreviews]);
             }
         }
@@ -430,9 +438,8 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                 }
             }
             
-            // Comprimir imágenes antes de enviar a Firebase
-            const imagePromises = imageFiles.map(file => compressImage(file, 800, 0.7));
-            const images = await Promise.all(imagePromises);
+            // Las imágenes ya están comprimidas como data URLs en imagePreviews
+            const images = imagePreviews;
 
             const locationString = `${submitData.city}, ${submitData.state}`;
 
