@@ -68,6 +68,7 @@ type View =
 
 function App() {
     const { isAuthenticated, currentUser, logout: authLogout } = useAuth();
+
     const { properties } = useProperties();
     const { isOnline, lastSync } = useConnectionStatus();
     const [view, setView] = useState<View>('home');

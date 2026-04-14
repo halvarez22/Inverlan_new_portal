@@ -44,7 +44,7 @@ const deleteUserDirectly = async (userId: string): Promise<void> => {
 
 const getAllUsersDirectly = async (): Promise<User[]> => {
   try {
-    const q = query(collection(db, USERS_COLLECTION), orderBy('createdAt', 'desc'));
+    const q = query(collection(db, USERS_COLLECTION));
     const querySnapshot = await getDocs(q);
     const allUsers = querySnapshot.docs.map(doc =>
       omitPassword({ id: doc.id, ...doc.data() } as Record<string, unknown>)
@@ -88,12 +88,14 @@ const addUserDirectly = async (user: Omit<User, 'id'>): Promise<string> => {
 export const userService = {
   async getAllUsers(): Promise<User[]> {
     try {
-      const q = query(collection(db, USERS_COLLECTION), orderBy('createdAt', 'desc'));
+      const q = query(collection(db, USERS_COLLECTION));
       const querySnapshot = await getDocs(q);
       const allUsers = querySnapshot.docs.map(doc =>
         omitPassword({ id: doc.id, ...doc.data() } as Record<string, unknown>)
       ) as unknown as User[];
 
+      console.log(`[userService] Raw users from Firestore: ${allUsers.length}`);
+      
       const uniqueUsers = new Map<string, User>();
       for (const user of allUsers) {
         if (!uniqueUsers.has(user.id)) {
@@ -102,12 +104,9 @@ export const userService = {
       }
 
       const result = Array.from(uniqueUsers.values());
-      if (result.length !== allUsers.length) {
-        console.warn(`Firebase devolvió ${allUsers.length} documentos, ${result.length} únicos por id`);
-      }
-
       return result;
     } catch (error) {
+
       console.error('Error getting users:', error);
       throw error;
     }
