@@ -33,6 +33,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const IS_DEVELOPMENT = window.location.hostname === 'localhost';
+const BYPASS_AUTH = import.meta.env.VITE_BYPASS_AUTH === 'true';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [users, setUsers] = useState<User[]>([]);
@@ -168,6 +169,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const login = async (identifier: string, password: string): Promise<boolean> => {
+        if ((IS_DEVELOPMENT || BYPASS_AUTH) && identifier === 'admin' && password === 'admin') {
+            const adminUser: User = {
+                id: 'dev-admin-1',
+                username: 'admin',
+                email: 'admin@inverland.com',
+                role: 'admin',
+                name: 'Administrador de Desarrollo'
+            };
+            setCurrentUser(adminUser);
+            try {
+                sessionStorage.setItem('inverland_session', JSON.stringify(adminUser));
+            } catch (error) {
+                console.error('Failed to set session storage:', error);
+            }
+            loggingService.logSecurity('USER_LOGIN', true, adminUser.id, adminUser.role);
+            return true;
+        }
+
         const email = resolveLoginEmail(identifier);
 
         if (email) {

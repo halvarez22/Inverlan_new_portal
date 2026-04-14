@@ -394,7 +394,7 @@ function App() {
             <Suspense fallback={null}>
                 <DataMigration />
             </Suspense>
-            <SyncStatus isOnline={isOnline} lastSync={lastSync || undefined} />
+            {import.meta.env.DEV && <SyncStatus isOnline={isOnline} lastSync={lastSync || undefined} />}
         </div>
     );
 }
