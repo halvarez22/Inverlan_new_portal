@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getFunctions } from "firebase/functions";
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -26,5 +27,6 @@ const staffProvisionApp = initializeApp(firebaseConfig, "InverlanStaffProvision"
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const secondaryAuth = getAuth(staffProvisionApp);
+export const functions = getFunctions(app);
 
 export default app;

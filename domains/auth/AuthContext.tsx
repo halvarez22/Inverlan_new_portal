@@ -10,6 +10,7 @@ import {
     rollbackProvisionedStaffAccount,
     signOutStaffProvisionAuth,
 } from '../../services/firebase/staffAuthProvision';
+import { userManagementService } from '../../services/firebase/userManagementService';
 import { findPortalProfile } from './resolveStaffProfile';
 import { syncAuthProfileWithFirebase } from './syncAuthProfileLink';
 import { canManageStaffAccounts } from './permissions';
@@ -295,20 +296,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return;
         }
 
+        try {
+            const result = await userManagementService.createUser({
+                email,
+                password: initialPassword,
+                username: profile.username,
+                role: profile.role as 'admin' | 'agent' | 'user' | 'referrer',
+                name: profile.name,
+            });
+
+            if (result.success) {
+                const newUser: User = {
+                    id: result.uid!,
+                    username: profile.username,
+                    email,
+                    role: profile.role as 'admin' | 'agent' | 'user' | 'referrer',
+                    name: profile.name || profile.username,
+                    authUid: result.uid,
+                };
+
+                setUsers((currentUsers) => {
+                    const updatedUsers = [...currentUsers, newUser];
+                    try {
+                        localStorage.setItem('inverland_users', JSON.stringify(updatedUsers));
+                    } catch (localError) {
+                        console.warn('Failed to save to localStorage backup:', localError);
+                    }
+                    return updatedUsers;
+                });
+
+                loggingService.logSecurity('STAFF_REGISTRATION_SUCCESS', true, currentUser?.id, currentUser?.role, `Created user: ${newUser.id}`);
+                setStatusMessage(`Exito: Usuario '${profile.username}' creado.`);
+                return;
+            } else {
+                throw new Error(result.message || 'Cloud Function error');
+            }
+        } catch (error) {
+            loggingService.logSecurity('STAFF_REGISTRATION_FAILURE', false, currentUser?.id, currentUser?.role, `Error during staff registration: ${String(error)}`);
+            console.error('Failed to create user via Cloud Function, trying fallback:', error);
+            await registerUserFallback(profile, initialPassword, email);
+        }
+    };
+
+    const registerUserFallback = async (profile: Omit<User, 'id'>, initialPassword: string, email: string) => {
         let provisionedUser: FirebaseAuthUser | null = null;
         try {
-            const existsInFirebase = await userService.userExistsByUsername(profile.username);
-            if (existsInFirebase) {
-                setStatusMessage(`Error: El usuario '${profile.username}' ya existe en el sistema.`);
-                return;
-            }
-
-            const emailTaken = await userService.userExistsByEmail(email);
-            if (emailTaken) {
-                setStatusMessage(`Error: El correo '${email}' ya esta registrado en el sistema.`);
-                return;
-            }
-
             provisionedUser = await provisionStaffAuthAccount(email, initialPassword);
             const userId = await userService.addUser({ ...profile, email, authUid: provisionedUser.uid });
             const userWithId: User = { ...profile, id: userId, email, authUid: provisionedUser.uid };
@@ -323,18 +355,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return updatedUsers;
             });
 
-            loggingService.logSecurity('STAFF_REGISTRATION_SUCCESS', true, currentUser?.id, currentUser?.role, `Created user: ${userWithId.id}`);
-            setStatusMessage(`Exito: Usuario '${profile.username}' creado (Auth + perfil).`);
+            loggingService.logSecurity('STAFF_REGISTRATION_SUCCESS_FALLBACK', true, currentUser?.id, currentUser?.role, `Created user via fallback: ${userWithId.id}`);
+            setStatusMessage(`Exito: Usuario '${profile.username}' creado (fallback).`);
         } catch (error) {
-            loggingService.logSecurity('STAFF_REGISTRATION_FAILURE', false, currentUser?.id, currentUser?.role, `Error during staff registration: ${String(error)}`);
+            loggingService.logSecurity('STAFF_REGISTRATION_FAILURE', false, currentUser?.id, currentUser?.role, `Error during staff registration fallback: ${String(error)}`);
             if (provisionedUser) {
                 try {
                     await rollbackProvisionedStaffAccount(provisionedUser);
                 } catch (rollbackErr) {
-                    console.error(
-                        'No se pudo revertir la cuenta de Authentication tras fallo en Firestore:',
-                        rollbackErr
-                    );
+                    console.error('No se pudo revertir la cuenta de Authentication:', rollbackErr);
                 }
             }
             console.error('Failed to create user:', error);
@@ -366,7 +395,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         try {
-            await userService.updateUser(updatedUser.id, updatedUser);
+            const result = await userManagementService.updateUser({
+                uid: updatedUser.id,
+                email: updatedUser.email,
+                username: updatedUser.username,
+                role: updatedUser.role,
+                name: updatedUser.name,
+            });
+
+            if (!result.success) {
+                throw new Error(result.message || 'Cloud Function error');
+            }
 
             setUsers((currentUsers) => {
                 const updatedUsers = currentUsers.map((u) =>
@@ -396,7 +435,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         } catch (error) {
             loggingService.logSecurity('USER_UPDATE_FAILURE', false, currentUser?.id, currentUser?.role, `Failed to update user: ${updatedUser.id} | ${String(error)}`);
-            console.error('Failed to update user in Firebase:', error);
+            console.error('Failed to update user:', error);
             setStatusMessage('Error: No se pudo actualizar el usuario.');
         }
     };
@@ -435,7 +474,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
 
         try {
-            await userService.deleteUser(userId);
+            const result = await userManagementService.deleteUser({ uid: userId });
+
+            if (!result.success) {
+                throw new Error(result.message || 'Cloud Function error');
+            }
 
             setUsers((currentUsers) => {
                 const updatedUsers = currentUsers.filter((u) => u.id !== userId);
@@ -453,7 +496,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setStatusMessage(`Exito: Usuario '${currentUserName}' eliminado.`);
         } catch (error) {
             loggingService.logSecurity('USER_DELETE_FAILURE', false, currentUser?.id, currentUser?.role, `Failed to delete user: ${userId} | ${String(error)}`);
-            console.error('Failed to delete user in Firebase:', error);
+            console.error('Failed to delete user:', error);
             setStatusMessage('Error: No se pudo eliminar el usuario.');
         }
     };
