@@ -1,0 +1,620 @@
+INVERLAND	Brand Manual	1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INVERLAND	The Logo	3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EL LOGO
+
+
+01.
+
+El logo de Inverland está creado especialmente para la marca, deberá siempre ser usado tal cual se muestra aquí. Siempre respetando sus proporciones y su construcción.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+EL LOGO A COLOR
+
+
+01.
+
+El logo de Inverland está creado especialmente para la marca, deberá siempre ser usado tal cual se muestra aquí. Siempre respetando sus proporciones y su construcción.
+
+INVERLAND	The Logo	5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+THE PLEASE DONT’S
+
+01.
+
+El éxito de la marca depende de que el logotipo de INVERLAND mantengan una apariencia consistente en todas las comunica- ciones. Con el fin de preservar la integridad del logotipo, es im- portante que nunca hagas lo siguiente:
+
+01 - No coloques el logotipo en un contenedor o forma. 02 - No cambies ni alteres el logotipo.
+03 - No añadas efectos al logotipo. 04 - No gires el logotipo.
+05 - No inclines ni alteres las proporciones.
+06 - No coloques el logotipo en colores de bajo contraste.
+07 - No coloques el logotipo en fondos ocupados o complicados.
+
+RECUERDA:
+
+Para asegurar coherencia y reconocimiento absoluto de la mar- ca en todas las plataformas, esta versión no debe ser alterada ni distorsionada. Siempre respeta el espacio que es proporcional a la altura x de la letra “D” del logotipo.
+
+INVERLAND	The Logo	6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TAMAÑO MÍNIMO DIGITAL - 105 PX DE ANCHO
+
+02.
+
+Para preservar la integridad del diseño principal en formato digital, se ha establecido un ancho mínimo de 70 píxeles. La altura debe ser proporcional.
+
+
+
+
+
+
+
+
+
+PARÁMETROS DE TAMAÑO
+
+01.
+
+El logotipo de INVERLAND puede ser redimensionado según sea necesario. Sin embargo, debe seguir estos requisitos de tamaño mínimo para asegurar que siga siendo legible incluso cuando se escala a dimensiones más pequeñas.
+
+
+TAMAÑO MÍNIMO DE IMPRESIÓN - 3.5 CM DE ANCHO
+
+03.
+
+Para preservar la integridad del diseño principal en impresión, se ha establecido un ancho míni- mo de 3 cm. La altura debe ser proporcional.
+
+INVERLAND	Where to place it	7
+POSICIONES DEL LOGO
+02.
+El logotipo puede utilizarse en diversos espa- cios, y su tamaño puede aumentarse según las necesidades de la aplicación.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+WHERE AND HOW
+
+01.
+
+El logotipo de INVERLAND puede existir en diferentes disposiciones y espacios. Todas las composiciones deben permitir que destaque y evitar que se vea abrumado por información o imágenes excesivas.
+
+
+INVERLAND	Color Palette
+
+[ BLUE ]
+pantone: /4C
+cmyk: 99, 72, 39, 32
+rgb: 12, 60, 91
+hex: 0 c3c/b
+
+
+[ LIGHT BLUE ]
+pantone: /36c
+cmyk: 42, 24, 17, 2
+rgb: 1/9, 176, 194
+hex: 9fb 0 c2
+
+[ AQUA ]
+pantone: 0821c cmyk: /6, 0, 8, 0
+rgb: 106, 207, 236
+hex: 6acfec
+
+[ OFF WHITE ]
+pantone: light g cmyk: 6, /, /, 0
+rgb: 243, 242, 242
+hex: f3f2f2
+
+[ BLACK ]
+pantone: black
+cmyk: 91, 79, 62, 97
+rgb: 0, 0, 0
+hex: 000000 
+
+
+
+
+BLUE	0821C
+(azul cielo)
+54C (azul ma- rino)
+
+
+PALETA DE COLOR
+
+
+01.
+
+Esta es la paleta de colores seleccionada para la marca. Los colores están diseñados para funcionar tanto digitalmente como en impresión, aunque en impresión el color azul puede variar un poco debido al nivel de brillo que tiene en digital, pero se elegirán los valores que sean adecuados (CMYK). Son una extensión de la marca y su ADN, por lo que no se deben
+utilizar colores que no estén incluidos en esta paleta.
+
+INVERLAND	Typography	9
+
+
+ARCHIVO REGUL AR
+
+Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp
+CHARLEVOIX PRO R EGU LAR 
+Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp
+
+		
+
+
+INVERLAND	Social Media
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LOOK & FEEL DE LA MARCA
+
+
+01.
+
+Este es el look & feel general de toda la comunicación digital de la marca. La idea es combinar los diferentes recursos que se presentan a continuación para lograr que la marca man- tenga este estilo minimalista y coorporativo sin ser aburrido.
+
+Es importante que se respeten los siguientes parámetros para que la comunicación que se empiece a crear a partir de ahora, tenga relación con todo lo que se creó y se pueda lograr esta estética y estilo que se propone.
+
+
+
+
+
+
+
+ 	
+
+INVERLAND	Applications	13
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FIRMAS ELECTRÓNICAS
+
+01.
+
+Este es el diseño de la firma electrónica, siempre permanece igual, unicamente cambian los nombres de la persona y sus datos.
+
+INVERLAND	Applications	14
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TARJETAS DE PRESENTACIÓN
+
+01.
+
+Material sugerido: mayor a 215gr, color blanco o un off white tirandole a gris claro.
+Medidas: 8 x 4.5 cm Impreso:
+Parte delantera el logo (inverland) en realce y el sol en serigrafía bril- losa color azul cielo.
+Parte trasera: el logo (inverland) se marca por el realce y la infor- mación va en serigrafía brillosa color azul marino.
+PANTONES:
+BLUE 0821C (azul cielo) 54C (azul marino)
+
+INVERLAND	Applications	15
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HOJA MEMBRETADA
+01.
+
+Material sugerido: Papel bond u opalina mate blanca. Impreso:
+Digital o serigrafia brillosa.
+
+PANTONES:
+BLUE 0821C (azul cielo) 54C (azul marino)
+
+INVERLAND	Applications	16
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FOLDER
+
+01.
+
+Material sugerido: Checar con provedor modelos y materiales
+igual checar los colores para elegir lo más parecido al pantone. Impreso:
+Logotipo en realce PANTONES:
+54C (azul marino)
+
+
+INVERLAND	Applications	17
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GORRAS
+
+01.
+
+La idea de las gorrras es la siguiente. Comprar gorras de gabardina azul marino y el logo bordado en los colores de la marca.
+
+
+INVERLAND	Applications
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UNIFORMES
+
+01.
+
+Una polo blanca, con el logor bordado en los colores de la marca o en transfer. La polo igual puede ser en cualquier color de la marca, y el logo en algún colo que contraste.
+*Unicamente usar colores de la marca.
+
+INVERLAND	Brand Manual	19
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
