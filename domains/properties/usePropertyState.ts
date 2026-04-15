@@ -58,8 +58,12 @@ export const usePropertyState = (): PropertyStateApi => {
             setProperties([]);
           }
         }
-      } catch (error) {
-        console.error('Failed to load properties from Firebase:', error);
+      } catch (error: any) {
+        const isPermissionError = error?.code === 'permission-denied' || 
+                                 (error instanceof Error && error.message.toLowerCase().includes('permission'));
+        if (!isPermissionError) {
+          console.error('Failed to load properties from Firebase:', error);
+        }
         try {
           const storedProperties = localStorage.getItem('inverland_properties');
           if (storedProperties) {

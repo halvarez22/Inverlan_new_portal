@@ -54,8 +54,12 @@ export const useCampaignState = (): CampaignStateApi => {
             setCampaigns([]);
           }
         }
-      } catch (error) {
-        console.error('Failed to load campaigns from Firebase:', error);
+      } catch (error: any) {
+        const isPermissionError = error?.code === 'permission-denied' || 
+                                 (error instanceof Error && error.message.toLowerCase().includes('permission'));
+        if (!isPermissionError) {
+          console.error('Failed to load campaigns from Firebase:', error);
+        }
         try {
           const storedCampaigns = localStorage.getItem('inverland_campaigns');
           if (storedCampaigns) {

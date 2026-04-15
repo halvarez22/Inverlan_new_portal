@@ -25,7 +25,6 @@ export const propertyService = {
         ...doc.data()
       })) as Property[];
     } catch (error) {
-      console.error('Error getting properties:', error);
       throw error;
     }
   },
@@ -43,7 +42,6 @@ export const propertyService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting property:', error);
       throw error;
     }
   },
@@ -61,7 +59,6 @@ export const propertyService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error adding property:', error);
       throw error;
     }
   },
@@ -78,7 +75,6 @@ export const propertyService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating property:', error);
       throw error;
     }
   },
@@ -88,7 +84,6 @@ export const propertyService = {
       const docRef = doc(db, PROPERTIES_COLLECTION, id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting property:', error);
       throw error;
     }
   }

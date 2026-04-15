@@ -51,27 +51,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         const loadUsers = async () => {
             try {
-                if (IS_DEVELOPMENT) {
-                    console.log('Iniciando carga de usuarios...');
-                }
-
+                // Intentamos sincronizar con Firebase
                 const syncedUsers = await userService.syncUsers();
 
                 if (syncedUsers.length > 0) {
                     setUsers(syncedUsers);
-                    console.log(`Usuarios cargados: ${syncedUsers.length}`);
-                } else {
-                    if (IS_DEVELOPMENT) {
-                        console.log(
-                            'Sin usuarios en Firestore. Crea el primer administrador en Firebase Authentication y un documento en la coleccion users con el mismo correo, rol y authUid; o usa una cuenta admin existente para registrar personal.'
-                        );
-                    } else {
-                        console.log('Produccion: lista de usuarios vacia');
-                    }
-                    setUsers([]);
+                    if (IS_DEVELOPMENT) console.log(`Usuarios sincronizados: ${syncedUsers.length}`);
                 }
             } catch (error) {
-                console.error('Error en carga de usuarios:', error);
+                // Si falla por permisos (no hay login) o por red
+                const isPermissionError = error instanceof Error && error.message.includes('permission');
+                
+                if (isPermissionError) {
+                    if (IS_DEVELOPMENT) console.log('Permisos de Firestore restringidos. Esperando autenticación...');
+                } else {
+                    console.error('Error en carga inicial de usuarios:', error);
+                }
+                
+                // FALLBACK: Carga desde localStorage si Firebase no está accesible
                 try {
                     const storedUsers = localStorage.getItem('inverland_users');
                     if (storedUsers) {
@@ -82,10 +79,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             return rest as unknown as User;
                         });
                         setUsers(localUsers);
-                        console.log(`Fallback a localStorage: ${localUsers.length} usuarios`);
+                        if (IS_DEVELOPMENT) console.log(`Fallback a localStorage: ${localUsers.length} usuarios`);
                     } else {
                         setUsers([]);
-                        console.log('Sin usuarios en localStorage');
+                        if (IS_DEVELOPMENT) {
+                            console.log('Sin usuarios en Firestore ni localStorage. Se requiere login con email de admin.');
+                        }
                     }
                 } catch (localError) {
                     console.error('Error accediendo a localStorage:', localError);
@@ -114,19 +113,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (!firebaseUser) {
                 return;
             }
-
-            void (async () => {
-                const matchedUser = findPortalProfile(usersRef.current, {
-                    firebaseUid: firebaseUser.uid,
-                    emailNormalized: firebaseUser.email?.toLowerCase() ?? null,
-                    identifierRaw: undefined,
-                });
-
-                if (!matchedUser) {
-                    return;
-                }
-
+            (async () => {
                 try {
+                    // Si llegamos aqui y no tenemos usuarios, intentamos sincronizar ahora que ya tenemos auth
+                    let currentUsersList = usersRef.current;
+                    if (currentUsersList.length === 0) {
+                        if (IS_DEVELOPMENT) console.log('Re-intentando sincronización de catálogo con sesión activa...');
+                        currentUsersList = await userService.syncUsers();
+                        setUsers(currentUsersList);
+                    }
+
+                    const matchedUser = findPortalProfile(currentUsersList, {
+                        firebaseUid: firebaseUser.uid,
+                        emailNormalized: firebaseUser.email?.toLowerCase() ?? null,
+                        identifierRaw: undefined,
+                    });
+
+                    if (!matchedUser) {
+                        if (IS_DEVELOPMENT) console.warn('No se encontró perfil en Firestore para el UID:', firebaseUser.uid);
+                        return;
+                    }
+
                     const synced = await syncAuthProfileWithFirebase(
                         matchedUser,
                         firebaseUser.uid,
@@ -165,6 +172,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return matchedUser.email.toLowerCase();
         }
 
+        // Fallback para desarrollo: permite usar 'admin' incluso si la lista de usuarios está vacía por falta de permisos
+        if (IS_DEVELOPMENT && identifier.trim().toLowerCase() === 'admin') {
+            console.log('Bootstrap: Usando correo de administrador predeterminado para desarrollo.');
+            return 'admin@inverland.com'; // TODO: Asegurarse de que este correo existe en Firebase Auth
+        }
+
         return null;
     };
 
@@ -175,14 +188,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             try {
                 const credentials = await signInWithEmailAndPassword(auth, email, password);
                 const firebaseUid = credentials.user.uid;
-                const matchedUser = findPortalProfile(usersRef.current, {
+                
+                // Una vez autenticados, intentamos sincronizar la lista de usuarios de nuevo si estaba vacía
+                let currentUsersList = usersRef.current;
+                if (currentUsersList.length === 0) {
+                    try {
+                        currentUsersList = await userService.syncUsers();
+                        setUsers(currentUsersList);
+                    } catch (syncErr) {
+                        console.error('Error sincronizando usuarios tras login:', syncErr);
+                    }
+                }
+
+                const matchedUser = findPortalProfile(currentUsersList, {
                     firebaseUid,
                     emailNormalized: email,
                     identifierRaw: identifier,
                 });
 
                 if (!matchedUser) {
-                    setStatusMessage('Error: El usuario autenticado no tiene perfil en el portal.');
+                    setStatusMessage('Error: Su cuenta de acceso es correcta, pero el perfil en el portal no fue encontrado.');
                     return false;
                 }
 

@@ -90,8 +90,13 @@ Responde ÚNICAMENTE con el objeto JSON, sin texto adicional.`;
             })
         });
 
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error?.message || `Groq API error: ${response.status}`);
+        }
+
         const data = await response.json();
-        const jsonString = data.choices[0]?.message?.content || '{}';
+        const jsonString = data.choices?.[0]?.message?.content || '{}';
         const parsedJson = JSON.parse(jsonString);
         
         const filters: Partial<PropertyFilters> = {};
@@ -148,8 +153,13 @@ Texto a traducir: "${text}"`;
             })
         });
 
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error?.message || `Groq API error: ${response.status}`);
+        }
+
         const data = await response.json();
-        return data.choices[0]?.message?.content?.trim() || text;
+        return data.choices?.[0]?.message?.content?.trim() || text;
     } catch (error) {
         console.error("Error translating text with Groq:", error);
         return text;

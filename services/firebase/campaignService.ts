@@ -25,7 +25,6 @@ export const campaignService = {
         ...doc.data()
       })) as Campaign[];
     } catch (error) {
-      console.error('Error getting campaigns:', error);
       throw error;
     }
   },
@@ -43,7 +42,6 @@ export const campaignService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting campaign:', error);
       throw error;
     }
   },
@@ -61,7 +59,6 @@ export const campaignService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error adding campaign:', error);
       throw error;
     }
   },
@@ -78,7 +75,6 @@ export const campaignService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating campaign:', error);
       throw error;
     }
   },
@@ -88,7 +84,6 @@ export const campaignService = {
       const docRef = doc(db, CAMPAIGNS_COLLECTION, id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting campaign:', error);
       throw error;
     }
   }

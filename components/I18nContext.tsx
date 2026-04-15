@@ -75,6 +75,7 @@ export const translations: Translations = {
   'detail.tour': { es: 'Recorrido', en: 'Tour', zh: '导览' },
   'detail.watch_youtube': { es: 'Ver en YouTube', en: 'Watch on YouTube', zh: '在 YouTube 上查看' },
   'detail.view_tour': { es: 'Ver Recorrido 360°', en: 'View 360° Tour', zh: '查看 360° 导览' },
+  'detail.view_tour_on_external_site': { es: 'Ver recorrido en sitio externo', en: 'View tour on external site', zh: '在外部网站上查看导览' },
   'detail.interested': { es: '¿Interesado?', en: 'Interested?', zh: '感兴趣吗？' },
   'detail.interested_text': { es: 'Contacta a un asesor para agendar una visita o recibir más información.', en: 'Contact an advisor to schedule a visit or receive more information.', zh: '联系顾问预约参观或获取更多信息。' },
   'detail.request_info': { es: 'Solicitar Información', en: 'Request Information', zh: '索取信息' },

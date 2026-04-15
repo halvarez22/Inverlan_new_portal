@@ -37,7 +37,6 @@ const deleteUserDirectly = async (userId: string): Promise<void> => {
     const docRef = doc(db, USERS_COLLECTION, userId);
     await deleteDoc(docRef);
   } catch (error) {
-    console.error('Error deleting user:', error);
     throw error;
   }
 };
@@ -64,7 +63,6 @@ const getAllUsersDirectly = async (): Promise<User[]> => {
 
     return result;
   } catch (error) {
-    console.error('Error getting users:', error);
     throw error;
   }
 };
@@ -80,7 +78,6 @@ const addUserDirectly = async (user: Omit<User, 'id'>): Promise<string> => {
     });
     return docRef.id;
   } catch (error) {
-    console.error('Error adding user:', error);
     throw error;
   }
 };
@@ -106,8 +103,6 @@ export const userService = {
       const result = Array.from(uniqueUsers.values());
       return result;
     } catch (error) {
-
-      console.error('Error getting users:', error);
       throw error;
     }
   },
@@ -125,7 +120,6 @@ export const userService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting user:', error);
       throw error;
     }
   },
@@ -141,7 +135,6 @@ export const userService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error adding user:', error);
       throw error;
     }
   },
@@ -156,7 +149,6 @@ export const userService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating user:', error);
       throw error;
     }
   },
@@ -166,7 +158,6 @@ export const userService = {
       const docRef = doc(db, USERS_COLLECTION, id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting user:', error);
       throw error;
     }
   },
@@ -248,7 +239,6 @@ export const userService = {
       devLog(`Sincronización completada: ${syncedUsers.length} usuarios`);
       return syncedUsers;
     } catch (error) {
-      console.error('Error syncing users:', error);
       throw error;
     }
   },
@@ -283,7 +273,6 @@ export const userService = {
       devLog(`Limpieza completada: ${duplicatesRemoved} duplicados eliminados`);
       return duplicatesRemoved;
     } catch (error) {
-      console.error('Error cleaning duplicate users:', error);
       throw error;
     }
   },

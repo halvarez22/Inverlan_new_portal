@@ -96,6 +96,16 @@
 - Impacto: Expansión del alcance de la plataforma; experiencia de usuario personalizada por región; automatización del idioma en la IA.
 - Fecha: 2026-04-13
 
+### [2026-04-14] Integración Nativa de Recorridos 360 (Kuula.co)
+- Contexto: Los agentes necesitaban una forma sencilla de integrar recorridos virtuales inmersivos sin depender de enlaces externos manuales.
+- Decisión: 
+    - Se implementó detección automática de enlaces de Kuula.co en el módulo de propiedades.
+    - Se añadió lógica de conversión de URLs normales a formatos de "embed" (`/share/collection/`) para visualización nativa.
+    - Se configuraron parámetros de visualización premium (`fs=1`, `vr=1`, `thumbs=1`, `logo=0`) y permisos de hardware (`gyroscope`, `accelerometer`).
+    - Se actualizó la UI del panel de agente para mostrar un distintivo visual de "Kuula integrado".
+- Impacto: Mejora significativa en la presentación de propiedades de lujo; experiencia de usuario inmersiva directamente en el portal; facilidad de carga para los agentes.
+- Fecha: 2026-04-14
+
 ### [YYYY-MM-DD] [Título corto]
 - Contexto: [Problema, necesidad u oportunidad]
 - Decisión: [Qué se eligió]

@@ -131,17 +131,32 @@ const PropertyMediaSection: React.FC<PropertyMediaSectionProps> = ({
         <button
           type="button"
           onClick={onAddVideo360}
-          className="mb-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+          title="Se recomienda usar enlaces de Kuula.co para una experiencia integrada"
+          className="mb-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center"
         >
-          + Agregar Recorrido 360
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          + Agregar Recorrido 360 (Kuula Nativo)
         </button>
 
         {video360Urls.length > 0 && (
           <div className="mt-2 space-y-2">
             {video360Urls.map((url, index) => (
-              <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600 flex-1 truncate">{url}</span>
+              <div key={index} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg group">
+                <div className="flex-1 truncate">
+                    <span className="text-sm text-gray-600">{url}</span>
+                    {url.includes('kuula.co') && (
+                        <div className="flex items-center mt-1 text-[10px] text-blue-600 font-bold bg-blue-50 w-fit px-2 rounded">
+                            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                            </svg>
+                            Kuuula 360 integrado
+                        </div>
+                    )}
+                </div>
                 {onEditVideo360 && (
+
                   <button
                     type="button"
                     onClick={() => onEditVideo360(index, url)}

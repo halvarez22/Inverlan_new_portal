@@ -184,76 +184,129 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                              </ul>
                         </div>
                         
-                        {/* Videos Section */}
-                        {(property.videos && property.videos.length > 0) || property.video360 ? (
-                            <div>
-                                <h3 className="text-2xl font-bold text-inverland-dark mb-4">Videos</h3>
+                        {/* Multimedia Section (Native Integration) */}
+                        {(property.videos && property.videos.length > 0) || (property.video360 && (Array.isArray(property.video360) ? property.video360.length > 0 : property.video360)) ? (
+                            <div className="space-y-10 pt-8 border-t border-gray-100">
                                 
-                                {/* Videos de YouTube */}
-                                {property.videos && property.videos.length > 0 && (
-                                    <div className="mb-6">
-                                        <h4 className="text-lg font-semibold text-gray-800 mb-3">{t('detail.videos')}</h4>
-                                        <div className="space-y-4">
-                                            {property.videos.map((videoUrl, index) => (
-                                                <div key={index} className="bg-gray-50 rounded-lg p-4">
-                                                    <div className="flex items-center space-x-3 mb-3">
-                                                        <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-                                                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                                            </svg>
+                                {/* Recorridos Virtuales 360 (Nativo) */}
+                                {property.video360 && (Array.isArray(property.video360) ? property.video360.length > 0 : property.video360) && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="w-2 h-8 bg-blue-600 rounded-full"></div>
+                                            <h3 className="text-2xl font-bold text-inverland-dark">{t('detail.virtual_tour')}</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-8">
+                                            {(Array.isArray(property.video360) ? property.video360 : [property.video360]).map((v360, idx) => {
+                                                const isKuula = v360.includes('kuula.co');
+                                                // Convertir link normal de Kuula a link de share/embed si es necesario
+                                                let embedUrl = v360;
+                                                if (isKuula && !v360.includes('/share/')) {
+                                                    embedUrl = v360.replace('kuula.co/post/', 'kuula.co/share/collection/')
+                                                                   .replace('kuula.co/', 'kuula.co/share/collection/');
+                                                }
+                                                // Agregar parámetros recomendados por Kuula para mejor integración
+                                                if (isKuula && !embedUrl.includes('?')) {
+                                                    embedUrl += '?fs=1&vr=1&sd=1&thumbs=1&info=1&logo=0';
+                                                }
+
+                                                return (
+                                                    <div key={idx} className="space-y-3">
+                                                        <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl bg-gray-900 ring-1 ring-gray-200">
+                                                            {isKuula ? (
+                                                                <iframe
+                                                                    width="100%"
+                                                                    height="100%"
+                                                                    style={{ border: 'none', position: 'absolute', top: 0, left: 0 }}
+                                                                    frameBorder="0"
+                                                                    allowFullScreen
+                                                                    allow="xr-spatial-tracking; gyroscope; accelerometer"
+                                                                    scrolling="no"
+                                                                    src={embedUrl}
+                                                                    title={`Virtual Tour ${idx + 1}`}
+                                                                ></iframe>
+                                                            ) : (
+                                                                <div className="flex items-center justify-center h-full flex-col p-6 text-center">
+                                                                    <p className="text-white mb-4">{t('detail.view_tour_on_external_site')}</p>
+                                                                    <a 
+                                                                        href={v360} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer"
+                                                                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg"
+                                                                    >
+                                                                        {t('detail.view_tour')}
+                                                                    </a>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        <span className="text-sm text-gray-600">{t('detail.videos')} {index + 1}</span>
+                                                        <p className="text-sm font-medium text-gray-500 italic flex items-center">
+                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            Recorrido interactivo {idx + 1}
+                                                        </p>
                                                     </div>
-                                                    <a 
-                                                        href={videoUrl} 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                                                    >
-                                                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                                                        </svg>
-                                                        {t('detail.watch_youtube')}
-                                                    </a>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
-                                
-                                {/* Recorridos Virtuales 360 */}
-                                {property.video360 && (
-                                    <div className="mb-6">
-                                        <h4 className="text-lg font-semibold text-gray-800 mb-3">{t('detail.virtual_tour')}</h4>
-                                        <div className="space-y-4">
-                                            {(Array.isArray(property.video360) ? property.video360 : [property.video360]).map((v360, idx) => (
-                                                <div key={idx} className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-                                                    <div className="flex items-center space-x-3 mb-3">
-                                                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                {/* Videos de YouTube (Nativo) */}
+                                {property.videos && property.videos.length > 0 && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="w-2 h-8 bg-red-600 rounded-full"></div>
+                                            <h3 className="text-2xl font-bold text-inverland-dark">Videos Presentación</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-8">
+                                            {property.videos.map((videoUrl, index) => {
+                                                // Extraer ID de YouTube
+                                                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                                                const match = videoUrl.match(regExp);
+                                                const videoId = (match && match[2].length === 11) ? match[2] : null;
+
+                                                return (
+                                                    <div key={index} className="space-y-3">
+                                                        <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl bg-gray-900 ring-1 ring-gray-200">
+                                                            {videoId ? (
+                                                                <iframe
+                                                                    width="100%"
+                                                                    height="100%"
+                                                                    src={`https://www.youtube.com/embed/${videoId}`}
+                                                                    title={`YouTube video ${index + 1}`}
+                                                                    frameBorder="0"
+                                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                    allowFullScreen
+                                                                    style={{ position: 'absolute', top: 0, left: 0 }}
+                                                                ></iframe>
+                                                            ) : (
+                                                                <div className="flex items-center justify-center h-full flex-col p-6 text-center">
+                                                                    <a 
+                                                                        href={videoUrl} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer"
+                                                                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-lg"
+                                                                    >
+                                                                        {t('detail.watch_youtube')}
+                                                                    </a>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-sm font-medium text-gray-500 italic flex items-center">
+                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                             </svg>
-                                                        </div>
-                                                        <span className="text-sm text-gray-600">{t('detail.tour')} {idx + 1}</span>
+                                                            Video de presentación {index + 1}
+                                                        </p>
                                                     </div>
-                                                    <a 
-                                                        href={v360} 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                                                    >
-                                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                                        </svg>
-                                                        {t('detail.view_tour')}
-                                                    </a>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}
                             </div>
                         ) : null}
+
                         
                         {/* Location Map */}
                         <div>

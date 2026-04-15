@@ -60,8 +60,12 @@ export const useClientState = (): ClientStateApi => {
             setClients([]);
           }
         }
-      } catch (error) {
-        console.error('Failed to load clients from Firebase:', error);
+      } catch (error: any) {
+        const isPermissionError = error?.code === 'permission-denied' || 
+                                 (error instanceof Error && error.message.toLowerCase().includes('permission'));
+        if (!isPermissionError) {
+          console.error('Failed to load clients from Firebase:', error);
+        }
         try {
           const storedClients = localStorage.getItem('inverland_clients');
           if (storedClients) {

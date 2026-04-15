@@ -25,7 +25,6 @@ export const clientService = {
         ...doc.data()
       })) as Client[];
     } catch (error) {
-      console.error('Error getting clients:', error);
       throw error;
     }
   },
@@ -43,7 +42,6 @@ export const clientService = {
       }
       return null;
     } catch (error) {
-      console.error('Error getting client:', error);
       throw error;
     }
   },
@@ -61,7 +59,6 @@ export const clientService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error('Error adding client:', error);
       throw error;
     }
   },
@@ -78,7 +75,6 @@ export const clientService = {
         updatedAt: serverTimestamp()
       });
     } catch (error) {
-      console.error('Error updating client:', error);
       throw error;
     }
   },
@@ -88,7 +84,6 @@ export const clientService = {
       const docRef = doc(db, CLIENTS_COLLECTION, id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error('Error deleting client:', error);
       throw error;
     }
   }
