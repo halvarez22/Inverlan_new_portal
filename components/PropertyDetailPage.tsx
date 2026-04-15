@@ -260,10 +260,13 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                                         </div>
                                         <div className="grid grid-cols-1 gap-8">
                                             {property.videos.map((videoUrl, index) => {
-                                                // Extraer ID de YouTube
-                                                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-                                                const match = videoUrl.match(regExp);
-                                                const videoId = (match && match[2].length === 11) ? match[2] : null;
+                                                 // Extracción robusta de ID de YouTube (incluyendo Shorts y parámetros extras)
+                                                 const getYoutubeId = (url: string) => {
+                                                     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/shorts\/)([^#\&\?]*).*/;
+                                                     const match = url.match(regExp);
+                                                     return (match && match[2].length === 11) ? match[2] : null;
+                                                 };
+                                                 const videoId = getYoutubeId(videoUrl);
 
                                                 return (
                                                     <div key={index} className="space-y-3">
@@ -272,7 +275,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                                                                 <iframe
                                                                     width="100%"
                                                                     height="100%"
-                                                                    src={`https://www.youtube.com/embed/${videoId}`}
+                                                                     src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
                                                                     title={`YouTube video ${index + 1}`}
                                                                     frameBorder="0"
                                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -292,12 +295,19 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <p className="text-sm font-medium text-gray-500 italic flex items-center">
-                                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                                            </svg>
-                                                            Video de presentación {index + 1}
-                                                        </p>
+                                                        <div className="flex items-center justify-between">
+                                                            <p className="text-sm font-medium text-gray-500 italic flex items-center">
+                                                                <svg className="w-4 h-4 mr-1 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                                                                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 4-8 4z"/>
+                                                                </svg>
+                                                                Video de presentación {index + 1}
+                                                            </p>
+                                                            {videoId && (
+                                                                <span className="text-[10px] font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-wider">
+                                                                    YouTube Nativo
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 );
                                             })}
