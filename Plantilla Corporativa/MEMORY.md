@@ -106,8 +106,11 @@
 - Impacto: Mejora significativa en la presentación de propiedades de lujo; experiencia de usuario inmersiva directamente en el portal; facilidad de carga para los agentes.
 - Fecha: 2026-04-14
 
-### [YYYY-MM-DD] [Título corto]
-- Contexto: [Problema, necesidad u oportunidad]
-- Decisión: [Qué se eligió]
-- Impacto: [Consecuencias técnicas/funcionales esperadas]
-- Fecha: [YYYY-MM-DD]
+### [2026-04-15] Corrección de Bootstrap de Autenticación Local
+- Contexto: El inicio de sesión en local fallaba para el usuario `"admin"` porque la lista de usuarios no podía leerse de Firestore antes de estar autenticado (problema circular de permisos).
+- Decisión: 
+    - Se refactorizó `AuthContext.tsx` para corregir un bug estructural en el manejo de fallbacks.
+    - Se habilitó la carga de `localStorage` como respaldo inmediato ante errores de permisos.
+    - Se implementó un mapeo de desarrollo (bootstrap) que resuelve el username `"admin"` a un correo electrónico estándar para permitir la primera autenticación incluso con el catálogo vacío.
+- Impacto: Permite a los desarrolladores iniciar sesión y "desbloquear" Firestore sin configuraciones manuales complejas; mejora la robustez del flujo de carga inicial.
+- Fecha: 2026-04-15
