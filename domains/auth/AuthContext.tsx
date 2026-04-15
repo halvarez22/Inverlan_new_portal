@@ -172,10 +172,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return matchedUser.email.toLowerCase();
         }
 
-        // Fallback para desarrollo: permite usar 'admin' incluso si la lista de usuarios está vacía por falta de permisos
-        if (IS_DEVELOPMENT && identifier.trim().toLowerCase() === 'admin') {
-            console.log('Bootstrap: Usando correo de administrador predeterminado para desarrollo.');
-            return 'admin@inverland.com'; // TODO: Asegurarse de que este correo existe en Firebase Auth
+        // Fallback de bootstrap: permite usar 'admin' incluso si la lista de usuarios está vacía (ej. nuevo dispositivo)
+        const normalized = identifier.trim().toLowerCase();
+        if (normalized === 'admin') {
+            return 'admin@inverland.com'; 
         }
 
         return null;
