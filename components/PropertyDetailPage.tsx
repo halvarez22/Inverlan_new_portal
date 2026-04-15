@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Property } from '../types';
 import SimplePropertyMap from './SimplePropertyMap';
+import PropertyDatasheet from './PropertyDatasheet';
 import { useI18n } from './I18nContext';
 import { translateTextWithGroq } from '../services/groqService';
 
@@ -63,7 +64,9 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
     };
 
     return (
-        <section className="py-16 md:py-24 bg-white">
+        <>
+            {/* Contenido Principal (Oculto en impresión) */}
+            <section className="py-16 md:py-24 bg-white no-print">
             <div className="container mx-auto px-4 sm:px-6">
                 <button onClick={onBack} className="mb-8 text-inverland-blue font-semibold hover:underline flex items-center">
                     <span className="mr-2">&larr;</span> {t('detail.back')}
@@ -349,11 +352,31 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ property, onBac
                                     </button>
                                 </div>
                              </form>
+
+                              {/* Botón de Descargar Ficha */}
+                              <div className="mt-8 pt-6 border-t border-gray-200">
+                                  <button 
+                                      onClick={() => window.print()} 
+                                      className="w-full flex items-center justify-center space-x-2 bg-white border-2 border-inverland-blue text-inverland-blue font-bold py-3 px-4 rounded-xl hover:bg-inverland-blue hover:text-white transition-all duration-300 group"
+                                  >
+                                      <svg className="w-6 h-6 transform group-hover:-translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                      <span>Descargar Ficha Informativa</span>
+                                  </button>
+                                  <p className="text-[10px] text-gray-500 mt-2 text-center uppercase tracking-wider font-medium">Exportar como PDF para imprimir o enviar</p>
+                              </div>
                         </div>
                     </aside>
                 </div>
             </div>
         </section>
+
+        {/* Vista de Impresión (Solo visible al imprimir) */}
+        <div className="print-only">
+            <PropertyDatasheet property={property} />
+        </div>
+    </>
     );
 };
 

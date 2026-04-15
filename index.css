@@ -67,3 +67,38 @@
 .ql-editor {
   min-height: 200px;
 }
+
+/* Print Styles for Datasheet */
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  .datasheet-container {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 2cm !important;
+    box-shadow: none !important;
+  }
+}
