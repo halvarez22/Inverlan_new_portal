@@ -1,13 +1,23 @@
 import React from 'react';
 import { Property } from '../types';
+import { useI18n } from './I18nContext';
 
 interface PropertyDatasheetProps {
     property: Property;
+    translatedTitle?: string;
+    translatedDescription?: string;
 }
 
-const PropertyDatasheet: React.FC<PropertyDatasheetProps> = ({ property }) => {
+const PropertyDatasheet: React.FC<PropertyDatasheetProps> = ({ 
+    property, 
+    translatedTitle, 
+    translatedDescription 
+}) => {
+    const { t, language, translateAmenity } = useI18n();
+
     const formatDate = () => {
-        return new Date().toLocaleDateString('es-MX', {
+        const locale = language === 'es' ? 'es-MX' : language === 'en' ? 'en-US' : 'zh-CN';
+        return new Date().toLocaleDateString(locale, {
             day: 'numeric',
             month: 'long',
             year: 'numeric'
@@ -15,7 +25,8 @@ const PropertyDatasheet: React.FC<PropertyDatasheetProps> = ({ property }) => {
     };
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('es-MX', {
+        const locale = language === 'es' ? 'es-MX' : language === 'en' ? 'en-US' : 'zh-CN';
+        return new Intl.NumberFormat(locale, {
             style: 'currency',
             currency: 'MXN',
             minimumFractionDigits: 0
@@ -36,10 +47,10 @@ const PropertyDatasheet: React.FC<PropertyDatasheetProps> = ({ property }) => {
                         alt="Inverland Logo"
                         className="h-16 w-auto object-contain"
                     />
-                    <p className="text-xs text-gray-500 mt-2 uppercase tracking-widest font-bold">Inverland Portal | Bienes Raíces</p>
+                    <p className="text-xs text-gray-500 mt-2 uppercase tracking-widest font-bold">{t('datasheet.footer_tagline')}</p>
                 </div>
                 <div className="text-right">
-                    <p className="text-sm font-bold text-inverland-blue">FICHA INFORMATIVA</p>
+                    <p className="text-sm font-bold text-inverland-blue">{t('datasheet.title')}</p>
                     <p className="text-xs text-gray-500">{formatDate()}</p>
                     <p className="text-xs font-mono mt-2 bg-gray-100 px-2 py-1 rounded">ID: {property.internalKey || property.id.substring(0, 8).toUpperCase()}</p>
                 </div>
@@ -47,7 +58,7 @@ const PropertyDatasheet: React.FC<PropertyDatasheetProps> = ({ property }) => {
 
             {/* Title and Price */}
             <div className="mb-8">
-                <h1 className="text-3xl font-extrabold text-inverland-dark mb-2 uppercase">{property.title}</h1>
+                <h1 className="text-3xl font-extrabold text-inverland-dark mb-2 uppercase">{translatedTitle || property.title}</h1>
                 <div className="flex items-center justify-between">
                     <p className="text-lg text-gray-600 font-medium">{property.location}</p>
                     <div className="bg-inverland-blue text-white px-6 py-2 rounded-lg text-2xl font-black">
@@ -72,45 +83,45 @@ const PropertyDatasheet: React.FC<PropertyDatasheetProps> = ({ property }) => {
                 <div className="text-center">
                     <p className="text-[24px] mb-1">🛏️</p>
                     <p className="text-sm font-bold">{property.bedrooms}</p>
-                    <p className="text-[10px] text-gray-500 uppercase">Hab.</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{t('listings.beds')}</p>
                 </div>
                 <div className="text-center border-l border-gray-100">
                     <p className="text-[24px] mb-1">🛁</p>
                     <p className="text-sm font-bold">{property.bathrooms}</p>
-                    <p className="text-[10px] text-gray-500 uppercase">Baños</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{t('listings.baths')}</p>
                 </div>
                 <div className="text-center border-l border-gray-100">
                     <p className="text-[24px] mb-1">🚗</p>
                     <p className="text-sm font-bold">{property.parkingSpaces}</p>
-                    <p className="text-[10px] text-gray-500 uppercase">Estac.</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{t('amenity.parking')}</p>
                 </div>
                 <div className="text-center border-l border-gray-100">
                     <p className="text-[24px] mb-1">📐</p>
                     <p className="text-sm font-bold">{property.constructionArea}m²</p>
-                    <p className="text-[10px] text-gray-500 uppercase">Cons.</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{t('detail.area')}</p>
                 </div>
                 <div className="text-center border-l border-gray-100">
                     <p className="text-[24px] mb-1">📄</p>
                     <p className="text-sm font-bold">{property.type}</p>
-                    <p className="text-[10px] text-gray-500 uppercase">Tipo</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{t('detail.type')}</p>
                 </div>
             </div>
 
             {/* Description and Amenities */}
             <div className="grid grid-cols-3 gap-8 mb-10">
                 <div className="col-span-2">
-                    <h3 className="text-sm font-bold text-inverland-blue uppercase tracking-wider mb-4 border-l-4 border-inverland-blue pl-3">Descripción</h3>
+                    <h3 className="text-sm font-bold text-inverland-blue uppercase tracking-wider mb-4 border-l-4 border-inverland-blue pl-3">{t('detail.description')}</h3>
                     <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed italic">
-                        {property.description}
+                        {translatedDescription || property.description}
                     </p>
                 </div>
                 <div className="bg-gray-50 p-5 rounded-xl">
-                    <h3 className="text-sm font-bold text-inverland-blue uppercase tracking-wider mb-4">Amenidades</h3>
+                    <h3 className="text-sm font-bold text-inverland-blue uppercase tracking-wider mb-4">{t('detail.amenities')}</h3>
                     <ul className="space-y-2">
                         {property.amenities.slice(0, 8).map((amenity, idx) => (
                             <li key={idx} className="text-xs text-gray-600 flex items-center">
                                 <span className="w-1.5 h-1.5 bg-inverland-green rounded-full mr-2"></span>
-                                {amenity}
+                                {translateAmenity(amenity)}
                             </li>
                         ))}
                     </ul>
@@ -124,12 +135,12 @@ const PropertyDatasheet: React.FC<PropertyDatasheetProps> = ({ property }) => {
                         <img src={qrCodeUrl} alt="QR Code" className="w-20 h-20" />
                     </div>
                     <div>
-                        <p className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-widest">Escanea para más detalles</p>
+                        <p className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-widest">{t('datasheet.scan_for_details')}</p>
                         <p className="text-xs text-blue-600 underline">www.inverland.com.mx</p>
                     </div>
                 </div>
                 <div className="text-right">
-                    <p className="text-sm font-bold text-inverland-dark mb-1">CONTACTO INVERLAND</p>
+                    <p className="text-sm font-bold text-inverland-dark mb-1">{t('datasheet.contact')}</p>
                     <p className="text-sm text-gray-600">ventas@inverland.com</p>
                     <p className="text-lg font-black text-inverland-blue mt-1">477 123 4567</p>
                 </div>
@@ -137,7 +148,7 @@ const PropertyDatasheet: React.FC<PropertyDatasheetProps> = ({ property }) => {
             
             {/* Aviso Legal */}
             <p className="text-[8px] text-gray-400 mt-10 text-center uppercase tracking-tighter">
-                * Precios y disponibilidad sujetos a cambios sin previo aviso. Esta ficha es informativa y no representa un contrato vinculante.
+                {t('datasheet.legal_notice')}
             </p>
         </div>
     );

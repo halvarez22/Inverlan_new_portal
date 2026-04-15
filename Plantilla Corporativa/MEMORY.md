@@ -114,3 +114,13 @@
     - Se implementó un mapeo de desarrollo (bootstrap) que resuelve el username `"admin"` a un correo electrónico estándar para permitir la primera autenticación incluso con el catálogo vacío.
 - Impacto: Permite a los desarrolladores iniciar sesión y "desbloquear" Firestore sin configuraciones manuales complejas; mejora la robustez del flujo de carga inicial.
 - Fecha: 2026-04-15
+
+### [2026-04-15] Internacionalización de Fichas Informativas y Botones de Descarga
+- Contexto: El portal ya era multilingüe, pero las fichas informativas descargables y el botón de acción seguían hardcodeados en español.
+- Decisión: 
+    - Se agregaron claves de i18n para todos los textos de la ficha (descripción, amenidades, avisos legales, etc.).
+    - Se modificó `PropertyDatasheet.tsx` para usar el hook `useI18n` y recibir títulos/descripciones traducidos.
+    - Se localizó el formato de fecha y moneda según el idioma seleccionado (`es-MX`, `en-US`, `zh-CN`).
+    - Se tradujo completamente el botón "Descargar Ficha" y su descripción en `PropertyDetailPage.tsx`.
+- Impacto: Experiencia coherente en todos los idiomas soportados; permite la generación de material de marketing exportable para clientes internacionales.
+- Fecha: 2026-04-15

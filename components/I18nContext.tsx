@@ -79,6 +79,8 @@ export const translations: Translations = {
   'detail.interested': { es: '¿Interesado?', en: 'Interested?', zh: '感兴趣吗？' },
   'detail.interested_text': { es: 'Contacta a un asesor para agendar una visita o recibir más información.', en: 'Contact an advisor to schedule a visit or receive more information.', zh: '联系顾问预约参观或获取更多信息。' },
   'detail.request_info': { es: 'Solicitar Información', en: 'Request Information', zh: '索取信息' },
+  'detail.download_datasheet': { es: 'Descargar Ficha Informativa', en: 'Download Property Sheet', zh: '下载房产信息表' },
+  'detail.download_datasheet_info': { es: 'Exportar como PDF para imprimir o enviar', en: 'Export as PDF to print or send', zh: '导出为 PDF 以打印或发送' },
 
   // Amenities
   'amenity.pool': { es: 'Alberca', en: 'Pool', zh: '泳池' },
@@ -254,6 +256,15 @@ export const translations: Translations = {
     es: 'Eres un asistente virtual de Inverland Portal. Tu objetivo es ayudar a los usuarios a encontrar propiedades y responder dudas inmobiliarias en México.', 
     en: 'You are an Inverland Portal virtual assistant. Your goal is to help users find properties and answer real estate questions in Mexico.', 
     zh: '您是 Inverland Portal 虚拟助手。您的目标是帮助用户寻找房产并回答墨西哥的房地产问题。' 
+  },
+  'datasheet.title': { es: 'FICHA INFORMATIVA', en: 'PROPERTY SHEET', zh: '房产信息表' },
+  'datasheet.scan_for_details': { es: 'Escanea para más detalles', en: 'Scan for more details', zh: '扫码查看详情' },
+  'datasheet.contact': { es: 'CONTACTO INVERLAND', en: 'INVERLAND CONTACT', zh: '联系 INVERLAND' },
+  'datasheet.footer_tagline': { es: 'Inverland Portal | Bienes Raíces', en: 'Inverland Portal | Real Estate', zh: 'Inverland 门户 | 房地产' },
+  'datasheet.legal_notice': { 
+    es: '* Precios y disponibilidad sujetos a cambios sin previo aviso. Esta ficha es informativa y no representa un contrato vinculante.', 
+    en: '* Prices and availability subject to change without prior notice. This sheet is informative and does not represent a binding contract.', 
+    zh: '* 价格和空置情况如有更改，恕不另行通知。本表仅供参考，不代表具有约束力的合同。' 
   },
 };
 
