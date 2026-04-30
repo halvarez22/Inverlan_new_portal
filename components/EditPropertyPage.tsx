@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Property } from '../types';
-import { PROPERTY_TYPES } from '../constants';
+import { PROPERTY_TYPES, AMENITIES_LIST, ACTIVITY_TYPES } from '../constants';
 import { useProperties } from './PropertyContext';
 import { usePropertyMedia } from '../domains/properties/usePropertyMedia';
 import PropertyMediaSection from './PropertyMediaSection';
+import PropertyLocationSection from './propertyForm/PropertyLocationSection';
+import PropertyAmenitiesSection from './propertyForm/PropertyAmenitiesSection';
+import { InputField, SparklesIcon } from './addProperty/AddPropertyFormPrimitives';
+import { formatNumber, parseFormattedNumber } from './addProperty/addPropertyFormUtils';
+import { generatePropertyDescription } from '../services/geminiService';
 
 interface EditPropertyPageProps {
     onBack: () => void;
@@ -13,7 +18,7 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
     const { properties, updateProperty, deleteProperty } = useProperties();
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
     const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState<Omit<Property, 'id' | 'images' | 'videos' | 'location'>>({
+    const [formData, setFormData] = useState<Omit<Property, 'id' | 'images' | 'videos' | 'location'> & { latitude?: string | number; longitude?: string | number }>({
         title: '',
         description: '',
         type: PROPERTY_TYPES[0],
@@ -45,14 +50,18 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
         crossStreet: '',
         zipCode: '',
         showExactLocation: true,
-        latitude: 19.4326,
-        longitude: -99.1332,
+        latitude: '',
+        longitude: '',
         amenities: [],
         status: 'For Sale',
         mainPhotoIndex: 0,
         videos: [],
         video360: '',
     });
+
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [formattedPrice, setFormattedPrice] = useState<string>('');
+    const [formattedRentPrice, setFormattedRentPrice] = useState<string>('');
 
     const [isLoading, setIsLoading] = useState(false);
     const {
@@ -78,12 +87,123 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
         
         if (type === 'number' && value === '') {
             setFormData(prev => ({ ...prev, [name]: undefined }));
-        } else if (type === 'number') {
-            setFormData(prev => ({ ...prev, [name]: Number(value) }));
-        } else if (type === 'checkbox') {
-            setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+            return;
+        }
+
+        const isNumeric = ['price', 'rentPrice', 'bedrooms', 'bathrooms', 'halfBathrooms', 'parkingSpaces', 'constructionArea', 'landArea', 'landDepth', 'landFront', 'constructionYear', 'floorNumber', 'buildingFloors', 'maintenanceFee', 'latitude', 'longitude'].includes(name);
+
+        if (isNumeric) {
+            if (name === 'latitude' || name === 'longitude') {
+                if (value === '' || value === '-' || value === '.' || value === '-.' ||
+                    value.match(/^-?\d*\.?\d*$/)) {
+                    setFormData(prev => ({ ...prev, [name]: value }));
+                }
+            } else {
+                setFormData(prev => ({ ...prev, [name]: Number(value) }));
+            }
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
+    const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value === 'true' ? true : value === 'false' ? false : value }));
+    };
+
+    const handleAmenityToggle = (amenity: string) => {
+        setFormData(prev => {
+            const currentAmenities = prev.amenities || [];
+            if (currentAmenities.includes(amenity)) {
+                return { ...prev, amenities: currentAmenities.filter(a => a !== amenity) };
+            } else {
+                return { ...prev, amenities: [...currentAmenities, amenity] };
+            }
+        });
+    };
+
+    const handlePolicyToggle = (selectedPolicy: string, conflictingPolicy: string) => {
+        setFormData(prev => {
+            const currentAmenities = prev.amenities || [];
+            const filteredAmenities = currentAmenities.filter(a => a !== conflictingPolicy);
+            if (!filteredAmenities.includes(selectedPolicy)) {
+                return { ...prev, amenities: [...filteredAmenities, selectedPolicy] };
+            }
+            return { ...prev, amenities: filteredAmenities };
+        });
+    };
+
+    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatNumber(e.target.value);
+        setFormattedPrice(formatted);
+        const numericValue = parseFormattedNumber(formatted);
+        setFormData(prev => ({ ...prev, price: numericValue }));
+    };
+
+    const handleRentPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatNumber(e.target.value);
+        setFormattedRentPrice(formatted);
+        const numericValue = parseFormattedNumber(formatted);
+        setFormData(prev => ({ ...prev, rentPrice: numericValue }));
+    };
+
+    const handleCoordinatePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        const pastedText = e.clipboardData.getData('text').trim();
+        const fieldName = e.currentTarget.name;
+        
+        const coordinatePattern = /(-?\d+\.?\d*)\s*[,;]\s*(-?\d+\.?\d*)/;
+        const match = pastedText.match(coordinatePattern);
+        
+        if (match) {
+            const [, coord1Str, coord2Str] = match;
+            let latitude = parseFloat(coord1Str);
+            let longitude = parseFloat(coord2Str);
+            
+            // Logic to swap lat/long based on Mexican ranges if needed
+            if (!(latitude >= 14 && latitude <= 32) && (longitude >= 14 && longitude <= 32)) {
+                [latitude, longitude] = [longitude, latitude];
+            }
+            
+            latitude = Math.round(latitude * 1000000) / 1000000;
+            longitude = Math.round(longitude * 1000000) / 1000000;
+            
+            setFormData(prev => ({
+                ...prev,
+                latitude: latitude,
+                longitude: longitude
+            }));
+        } else {
+            const numValue = parseFloat(pastedText);
+            if (!isNaN(numValue)) {
+                const roundedValue = Math.round(numValue * 1000000) / 1000000;
+                setFormData(prev => ({ ...prev, [fieldName]: roundedValue }));
+            } else {
+                setFormData(prev => ({ ...prev, [fieldName]: pastedText }));
+            }
+        }
+    };
+
+    const handleGenerateDescription = async () => {
+        if (!formData.type || !formData.city || !formData.state) {
+            alert("Por favor, completa al menos el tipo de propiedad, estado y ciudad antes de generar la descripción.");
+            return;
+        }
+        setIsGenerating(true);
+        try {
+            const description = await generatePropertyDescription({
+                type: formData.type,
+                city: formData.city,
+                state: formData.state,
+                bedrooms: formData.bedrooms,
+                bathrooms: formData.bathrooms,
+                amenities: formData.amenities,
+            });
+            setFormData(prev => ({...prev, description }));
+        } catch (error) {
+            console.error("Error generating description", error);
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -123,13 +243,16 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
             interiorNumber: property.interiorNumber || '',
             crossStreet: property.crossStreet || '',
             zipCode: property.zipCode || '',
-            showExactLocation: property.showExactLocation || true,
+            showExactLocation: property.showExactLocation ?? true,
             latitude: property.latitude,
             longitude: property.longitude,
-            amenities: property.amenities,
+            amenities: property.amenities || [],
             status: property.status,
             mainPhotoIndex: property.mainPhotoIndex || 0,
         });
+
+        setFormattedPrice(formatNumber(property.price.toString()));
+        setFormattedRentPrice(formatNumber((property.rentPrice || 0).toString()));
 
         // Cargar imágenes existentes
         setFromExisting({
@@ -152,9 +275,15 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
 
             const locationString = `${formData.city}, ${formData.state}`;
 
+            // Convertir coordenadas de texto a número y redondear
+            const finalLatitude = typeof formData.latitude === 'string' ? parseFloat(formData.latitude) : formData.latitude;
+            const finalLongitude = typeof formData.longitude === 'string' ? parseFloat(formData.longitude) : formData.longitude;
+
             const updatedProperty: Property = {
                 ...selectedProperty,
-                ...formData,
+                ...(formData as any),
+                latitude: finalLatitude && !isNaN(finalLatitude) ? Math.round(finalLatitude * 1000000) / 1000000 : 0,
+                longitude: finalLongitude && !isNaN(finalLongitude) ? Math.round(finalLongitude * 1000000) / 1000000 : 0,
                 location: locationString,
                 images: allImages, // Imágenes existentes + nuevas comprimidas
                 videos: videoUrls, // URLs de YouTube
@@ -333,244 +462,218 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
                             <form onSubmit={handleSubmit} className="space-y-8">
                                 {/* Información Básica */}
                                 <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
-                                    <legend className="text-xl font-bold px-2 text-inverland-black">Información Básica</legend>
-                                    
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Título *</label>
-                                            <input
-                                                type="text"
-                                                name="title"
-                                                value={formData.title}
-                                                onChange={handleInputChange}
-                                                required
-                                                className="mt-1 block w-full input-style"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Tipo de Propiedad *</label>
-                                            <select
-                                                name="type"
-                                                value={formData.type}
-                                                onChange={handleInputChange}
-                                                required
-                                                className="mt-1 block w-full input-style"
+                                    <legend className="text-xl font-bold px-2 text-inverland-dark">Información Básica</legend>
+                                    <InputField label="Tipo de propiedad" name="type" required onChange={handleInputChange}>
+                                        <select name="type" id="type" required value={formData.type} onChange={handleInputChange} className="mt-1 block w-full input-style">
+                                            {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                        </select>
+                                    </InputField>
+                                    <InputField label="Título del anuncio" name="title" required value={formData.title} onChange={handleInputChange} />
+                                    <div>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">Descripción del anuncio<span className="text-red-500">*</span></label>
+                                            <button
+                                                type="button"
+                                                onClick={handleGenerateDescription}
+                                                disabled={isGenerating}
+                                                className="flex items-center text-xs font-semibold text-inverland-blue hover:text-inverland-dark transition-colors disabled:opacity-50 disabled:cursor-wait"
                                             >
-                                                {PROPERTY_TYPES.map(type => (
-                                                    <option key={type} value={type}>{type}</option>
-                                                ))}
-                                            </select>
+                                                {isGenerating ? (
+                                                    <>
+                                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-inverland-blue mr-2"></div>
+                                                        Generando...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <SparklesIcon className="w-4 h-4 mr-1" />
+                                                        Generar con IA
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                        <textarea name="description" id="description" required value={formData.description} rows={5} onChange={handleInputChange} className="mt-1 block w-full input-style" placeholder="Describe la propiedad o genera una descripción con IA..."></textarea>
+                                        <p className="text-xs text-gray-500 mt-1">Para una descripción más precisa, completa los campos de tipo, ubicación, recámaras, baños y amenidades.</p>
+                                    </div>
+                                </fieldset>
+
+                                {/* Operación y Precio */}
+                                <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
+                                    <legend className="text-xl font-bold px-2 text-inverland-dark">Operación y Precio</legend>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Operación<span className="text-red-500">*</span></label>
+                                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                                            <label className="flex items-center"><input type="radio" name="operationType" value="Venta" checked={formData.operationType === 'Venta'} onChange={handleRadioChange} className="radio-style"/> <span className="ml-2">Venta</span></label>
+                                            <label className="flex items-center"><input type="radio" name="operationType" value="Renta" checked={formData.operationType === 'Renta'} onChange={handleRadioChange} className="radio-style"/> <span className="ml-2">Renta</span></label>
+                                            <label className="flex items-center"><input type="radio" name="operationType" value="Renta temporal" checked={formData.operationType === 'Renta temporal'} onChange={handleRadioChange} className="radio-style"/> <span className="ml-2">Renta temporal</span></label>
                                         </div>
                                     </div>
-
+                                    {formData.operationType === 'Venta' && (
+                                        <InputField label="Precio de Venta (MXN) *" name="price">
+                                            <input
+                                                type="text"
+                                                name="price"
+                                                value={formattedPrice}
+                                                onChange={handlePriceChange}
+                                                required
+                                                placeholder="Ej: 1,500,000.00"
+                                                className="mt-1 block w-full input-style"
+                                            />
+                                        </InputField>
+                                    )}
+                                    {formData.operationType?.includes('Renta') && (
+                                        <InputField label="Precio de Renta (MXN) *" name="rentPrice">
+                                            <input
+                                                type="text"
+                                                name="rentPrice"
+                                                value={formattedRentPrice}
+                                                onChange={handleRentPriceChange}
+                                                required
+                                                placeholder="Ej: 15,000.00"
+                                                className="mt-1 block w-full input-style"
+                                            />
+                                        </InputField>
+                                    )}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Descripción *</label>
-                                        <textarea
-                                            name="description"
-                                            value={formData.description}
-                                            onChange={handleInputChange}
-                                            required
-                                            rows={4}
-                                            className="mt-1 block w-full input-style"
-                                        />
+                                        <label className="block text-sm font-medium text-gray-700">Mostrar precios en el anuncio</label>
+                                        <div className="mt-2 flex space-x-4">
+                                            <label className="flex items-center"><input type="radio" name="showPrice" value="true" checked={formData.showPrice === true} onChange={handleRadioChange} className="radio-style"/> <span className="ml-2">Sí</span></label>
+                                            <label className="flex items-center"><input type="radio" name="showPrice" value="false" checked={formData.showPrice === false} onChange={handleRadioChange} className="radio-style"/> <span className="ml-2">No</span></label>
+                                        </div>
                                     </div>
                                 </fieldset>
 
                                 {/* Características */}
                                 <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
-                                    <legend className="text-xl font-bold px-2 text-inverland-black">Características</legend>
+                                    <legend className="text-xl font-bold px-2 text-inverland-dark">Características</legend>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                                        {/* Campos para CASAS */}
+                                        {/* Renderizado dinámico de características según el tipo */}
                                         {formData.type === 'Casa' && (
                                             <>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Recámaras</label>
-                                                    <input type="number" name="bedrooms" value={formData.bedrooms} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Baños</label>
-                                                    <input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Medios baños</label>
-                                                    <input type="number" name="halfBathrooms" value={formData.halfBathrooms} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Estacionamientos</label>
-                                                    <input type="number" name="parkingSpaces" value={formData.parkingSpaces} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Construcción (m²)</label>
-                                                    <input type="number" name="constructionArea" value={formData.constructionArea} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Terreno (m²)</label>
-                                                    <input type="number" name="landArea" value={formData.landArea} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Fondo (m)</label>
-                                                    <input type="number" name="landDepth" value={formData.landDepth} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Frente (m)</label>
-                                                    <input type="number" name="landFront" value={formData.landFront} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Año const.</label>
-                                                    <input type="number" name="constructionYear" value={formData.constructionYear || ''} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
+                                                <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                                <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                                <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado" value={formData.halfBathrooms} onChange={handleInputChange}/>
+                                                <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                                <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                                <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                                <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                                                <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
+                                                <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
                                             </>
                                         )}
 
-                                        {/* Campos para DEPARTAMENTOS */}
                                         {formData.type === 'Departamento' && (
                                             <>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Recámaras</label>
-                                                    <input type="number" name="bedrooms" value={formData.bedrooms} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Baños</label>
-                                                    <input type="number" name="bathrooms" value={formData.bathrooms} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Medios baños</label>
-                                                    <input type="number" name="halfBathrooms" value={formData.halfBathrooms} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Estacionamientos</label>
-                                                    <input type="number" name="parkingSpaces" value={formData.parkingSpaces} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Construcción (m²)</label>
-                                                    <input type="number" name="constructionArea" value={formData.constructionArea} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Piso</label>
-                                                    <input type="number" name="floorNumber" value={formData.floorNumber || ''} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Pisos edif.</label>
-                                                    <input type="number" name="buildingFloors" value={formData.buildingFloors || ''} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Año const.</label>
-                                                    <input type="number" name="constructionYear" value={formData.constructionYear || ''} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Mantenim.</label>
-                                                    <input type="number" name="maintenanceFee" value={formData.maintenanceFee} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
+                                                <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                                <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                                <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado" value={formData.halfBathrooms} onChange={handleInputChange}/>
+                                                <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                                <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                                <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                                                <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                                                <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                                <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
                                             </>
                                         )}
 
-                                        {/* Campos para TERRENOS */}
                                         {formData.type === 'Terreno' && (
                                             <>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Terreno (m²)</label>
-                                                    <input type="number" name="landArea" value={formData.landArea} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Fondo (m)</label>
-                                                    <input type="number" name="landDepth" value={formData.landDepth} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700">Frente (m)</label>
-                                                    <input type="number" name="landFront" value={formData.landFront} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                                </div>
+                                                <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                                <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                                                <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
                                             </>
                                         )}
+
+                                        {formData.type === 'Oficina' && (
+                                            <>
+                                                <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                                <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                                <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                                                <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                                                <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                                <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
+                                            </>
+                                        )}
+
+                                        {formData.type === 'Local Comercial' && (
+                                            <>
+                                                <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                                <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                                <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                                                <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                                                <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                                <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
+                                            </>
+                                        )}
+
+                                        {formData.type === 'Bodega Industrial' && (
+                                            <>
+                                                <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                                <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                                <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                                <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                            </>
+                                        )}
+
+                                        {formData.type === 'Loft' && (
+                                            <>
+                                                <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                                <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                                <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                                <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                                <InputField label="Piso" name="floorNumber" type="number" placeholder="No indicado" value={formData.floorNumber} onChange={handleInputChange}/>
+                                                <InputField label="Pisos edif." name="buildingFloors" type="number" placeholder="No indicado" value={formData.buildingFloors} onChange={handleInputChange}/>
+                                                <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                                <InputField label="Mantenim." name="maintenanceFee" type="number" value={formData.maintenanceFee} onChange={handleInputChange} />
+                                            </>
+                                        )}
+
+                                        {formData.type === 'Villa' && (
+                                            <>
+                                                <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                                <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                                <InputField label="Medios baños" name="halfBathrooms" type="number" placeholder="No indicado" value={formData.halfBathrooms} onChange={handleInputChange}/>
+                                                <InputField label="Estacionamientos" name="parkingSpaces" type="number" placeholder="No indicado" value={formData.parkingSpaces} onChange={handleInputChange}/>
+                                                <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                                <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                                <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                                                <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
+                                                <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                            </>
+                                        )}
+
+                                        {formData.type === 'Hacienda' && (
+                                            <>
+                                                <InputField label="Recámaras" name="bedrooms" type="number" placeholder="No indicado" value={formData.bedrooms} onChange={handleInputChange} />
+                                                <InputField label="Baños" name="bathrooms" type="number" placeholder="No indicado" value={formData.bathrooms} onChange={handleInputChange}/>
+                                                <InputField label="Construcción (m²)" name="constructionArea" type="number" value={formData.constructionArea} onChange={handleInputChange} />
+                                                <InputField label="Terreno (m²)" name="landArea" type="number" value={formData.landArea} onChange={handleInputChange} />
+                                                <InputField label="Fondo (m)" name="landDepth" type="number" value={formData.landDepth} onChange={handleInputChange} />
+                                                <InputField label="Frente (m)" name="landFront" type="number" value={formData.landFront} onChange={handleInputChange} />
+                                                <InputField label="Año const." name="constructionYear" type="number" placeholder="No indicado" value={formData.constructionYear} onChange={handleInputChange}/>
+                                            </>
+                                        )}
+                                        {/* Añadir otros tipos según sea necesario, similar a AddProperty */}
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                        <InputField label="Clave interna" name="internalKey" value={formData.internalKey} onChange={handleInputChange} />
+                                        <InputField label="Código de la llave" name="keyLockerCode" value={formData.keyLockerCode} onChange={handleInputChange}/>
                                     </div>
                                 </fieldset>
 
-                                {/* Precio */}
-                                <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
-                                    <legend className="text-xl font-bold px-2 text-inverland-black">Precio</legend>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Precio de Venta *</label>
-                                            <input type="number" name="price" value={formData.price} onChange={handleInputChange} required className="mt-1 block w-full input-style" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Precio de Renta</label>
-                                            <input type="number" name="rentPrice" value={formData.rentPrice} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                        </div>
-                                    </div>
-                                </fieldset>
+                                <PropertyLocationSection
+                                    InputField={InputField}
+                                    formData={formData}
+                                    onChange={handleInputChange}
+                                    onRadioChange={handleRadioChange}
+                                    onCoordinatePaste={handleCoordinatePaste}
+                                />
 
-                                {/* Ubicación */}
-                                <fieldset className="space-y-6 p-4 md:p-6 border rounded-lg">
-                                    <legend className="text-xl font-bold px-2 text-inverland-black">Ubicación</legend>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Estado *</label>
-                                            <input type="text" name="state" value={formData.state} onChange={handleInputChange} required className="mt-1 block w-full input-style" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Ciudad *</label>
-                                            <input type="text" name="city" value={formData.city} onChange={handleInputChange} required className="mt-1 block w-full input-style" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Colonia</label>
-                                            <input type="text" name="neighborhood" value={formData.neighborhood} onChange={handleInputChange} className="mt-1 block w-full input-style" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Calle *</label>
-                                            <input type="text" name="street" value={formData.street} onChange={handleInputChange} required className="mt-1 block w-full input-style" />
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Coordenadas */}
-                                    <div className="mt-6">
-                                        <h4 className="text-lg font-semibold text-gray-800 mb-4">Coordenadas GPS</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700">Latitud</label>
-                                                <input 
-                                                    type="number" 
-                                                    name="latitude" 
-                                                    value={formData.latitude} 
-                                                    onChange={handleInputChange} 
-                                                    step="any"
-                                                    placeholder="Ej: 21.1452314838769"
-                                                    className="mt-1 block w-full input-style" 
-                                                />
-                                                <p className="mt-1 text-sm text-gray-500">
-                                                    Coordenada norte-sur (ej: 21.1452314838769)
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700">Longitud</label>
-                                                <input 
-                                                    type="number" 
-                                                    name="longitude" 
-                                                    value={formData.longitude} 
-                                                    onChange={handleInputChange} 
-                                                    step="any"
-                                                    placeholder="Ej: -101.69151450378543"
-                                                    className="mt-1 block w-full input-style" 
-                                                />
-                                                <p className="mt-1 text-sm text-gray-500">
-                                                    Coordenada este-oeste (ej: -101.69151450378543)
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                                            <p className="text-sm text-blue-800">
-                                                💡 <strong>Consejo:</strong> Puedes obtener las coordenadas exactas usando Google Maps. 
-                                                Haz clic derecho en la ubicación y selecciona "¿Qué hay aquí?" para ver las coordenadas.
-                                            </p>
-                                            <div className="mt-3 p-2 bg-white rounded border">
-                                                <p className="text-xs text-gray-600">
-                                                    <strong>Coordenadas actuales:</strong><br/>
-                                                    Latitud: {formData.latitude}<br/>
-                                                    Longitud: {formData.longitude}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </fieldset>
+                                <PropertyAmenitiesSection
+                                    amenitiesCatalog={AMENITIES_LIST}
+                                    selectedAmenities={formData.amenities}
+                                    onAmenityToggle={handleAmenityToggle}
+                                    onPolicyToggle={handlePolicyToggle}
+                                />
 
                                 <PropertyMediaSection
                                     imageFiles={imageFiles}
