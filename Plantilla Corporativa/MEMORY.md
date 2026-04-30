@@ -124,3 +124,12 @@
     - Se tradujo completamente el botÃ³n "Descargar Ficha" y su descripciÃ³n en `PropertyDetailPage.tsx`.
 - Impacto: Experiencia coherente en todos los idiomas soportados; permite la generaciÃ³n de material de marketing exportable para clientes internacionales.
 - Fecha: 2026-04-15
+
+### [2026-04-30] Refactorización de Edición de Propiedades y Paridad de Formulario
+- Contexto: El cliente reportó que muchos campos presentes en el formulario de alta (AddProperty) no eran editables en la página de edición, debido a una desincronización técnica entre ambos formularios.
+- Decisión: 
+    - Se refactorizó completamente EditPropertyPage.tsx para integrar los componentes modulares compartidos (PropertyLocationSection, PropertyAmenitiesSection, PropertyPoliciesSection).
+    - Se habilitaron campos críticos que faltaban: Número Exterior/Interior, Esquina con, CP, Amenidades por categoría, Políticas de mascotas/fumar y selección de Tipo de Operación (Venta/Renta/Renta temporal).
+    - Se incluyó la funcionalidad de " Generar con IA\ para descripciones en el modo edición.
+- Impacto: Se resolvió la limitación operativa de los agentes para actualizar fichas completas; se eliminó la deuda técnica de duplicidad de lógica de formularios y se aseguró una experiencia de usuario consistente en todo el ciclo de vida de la propiedad.
+- Fecha: 2026-04-30
