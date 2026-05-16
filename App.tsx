@@ -69,7 +69,7 @@ type View =
 function App() {
     const { isAuthenticated, currentUser, logout: authLogout } = useAuth();
 
-    const { properties } = useProperties();
+    const { properties, isLoadingProperties, propertiesLoadError } = useProperties();
     const { isOnline, lastSync } = useConnectionStatus();
     const [view, setView] = useState<View>('home');
     const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -185,6 +185,8 @@ function App() {
                         filters={filters}
                         setFilters={setFilters}
                         onViewProperty={handleViewProperty}
+                        isLoadingProperties={isLoadingProperties}
+                        propertiesLoadError={propertiesLoadError}
                     />
                 </div>
                 <ContactSection />

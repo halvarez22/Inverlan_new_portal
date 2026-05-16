@@ -4,6 +4,8 @@ import { usePropertyState } from '../domains/properties/usePropertyState';
 
 interface PropertyContextType {
     properties: Property[];
+    isLoadingProperties: boolean;
+    propertiesLoadError: string | null;
     addProperty: (property: Omit<Property, 'id'>) => Promise<void>;
     updateProperty: (property: Property) => Promise<void>;
     deleteProperty: (propertyId: string) => Promise<void>;

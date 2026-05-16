@@ -64,6 +64,28 @@ Para que el inicio de sesión funcione en el nuevo dominio:
 ### 4. **Verificar Variables de Entorno**
 Asegúrate de que en Vercel (**Settings** > **Environment Variables**) estén configuradas todas las variables necesarias de producción, especialmente las de Firebase y las API Keys de Gemini/Groq.
 
+El `VITE_FIREBASE_PROJECT_ID` debe ser **el mismo proyecto** donde ves las propiedades en la consola de Firebase. Si Vercel apunta a otro proyecto, el sitio mostrará **0 propiedades**.
+
+### 5. **Reglas de Firestore (CRÍTICO para el catálogo público)**
+La página de inicio lee `properties` **sin iniciar sesión**. Si las reglas exigen `request.auth`, verás **0 propiedades** en Vercel aunque existan en la consola.
+
+1. En Firebase Console → **Firestore** → **Reglas**, publica reglas que permitan lectura pública del catálogo, por ejemplo el archivo `firestore.rules` de este repo:
+
+```
+match /properties/{propertyId} {
+  allow read: if true;
+  allow create, update, delete: if request.auth != null;
+}
+```
+
+2. O desde CLI (con Firebase CLI instalado y proyecto seleccionado):
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+3. Tras publicar reglas, recarga el sitio en Vercel (Ctrl+F5).
+
 ---
 
 ## 🚀 Pasos para Actualizaciones Continuas (CI/CD)

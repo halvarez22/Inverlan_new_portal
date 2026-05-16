@@ -2,11 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { Property, ActivityLog } from '../../types';
 import { SAMPLE_PROPERTIES } from '../../constants';
 import { propertyUseCases, migrateInvalidPropertyImages, sanitizePropertyImages } from './propertyUseCases';
+import {
+  getPropertiesLoadErrorMessage,
+  isFirestorePermissionError,
+  readLocalPropertiesBackup,
+} from './propertyLoadUtils';
 import { loggingService } from '../../services/loggingService';
 import { domainBridge } from '../../domainBridge';
 
 export interface PropertyStateApi {
   properties: Property[];
+  isLoadingProperties: boolean;
+  propertiesLoadError: string | null;
   addProperty: (property: Omit<Property, 'id'>) => Promise<void>;
   updateProperty: (property: Property) => Promise<void>;
   deleteProperty: (propertyId: string) => Promise<void>;
@@ -17,8 +24,48 @@ export interface PropertyStateApi {
 
 export const usePropertyState = (): PropertyStateApi => {
   const [properties, setProperties] = useState<Property[]>([]);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [propertiesLoadError, setPropertiesLoadError] = useState<string | null>(null);
   const imageMigrationDone = useRef(false);
   const devSampleSeedAttempted = useRef(false);
+
+  const persistPropertiesBackup = (next: Property[]) => {
+    try {
+      localStorage.setItem('inverland_properties', JSON.stringify(next.map(sanitizePropertyImages)));
+    } catch (error) {
+      console.error('Failed to save properties to localStorage:', error);
+    }
+  };
+
+  const recoverFromLoadFailure = async (error: unknown) => {
+    if (!isFirestorePermissionError(error)) {
+      console.error('Error cargando propiedades desde Firebase:', error);
+    }
+    setPropertiesLoadError(getPropertiesLoadErrorMessage(error));
+
+    try {
+      const fromFirebase = await propertyUseCases.getAll();
+      if (fromFirebase.length > 0) {
+        setProperties(fromFirebase);
+        persistPropertiesBackup(fromFirebase);
+        setPropertiesLoadError(null);
+        return;
+      }
+    } catch {
+      // mismo fallo que la suscripción
+    }
+
+    const backup = readLocalPropertiesBackup();
+    if (backup.length > 0) {
+      setProperties(backup);
+      setPropertiesLoadError(
+        'Mostrando datos guardados en este navegador. Verifica reglas de Firestore y variables en Vercel.'
+      );
+      return;
+    }
+
+    setProperties([]);
+  };
 
   useEffect(() => {
     domainBridge.registerPropertyDomain({
@@ -31,6 +78,7 @@ export const usePropertyState = (): PropertyStateApi => {
     const applyFirebaseProperties = async (firebaseProperties: Property[]) => {
       setProperties(firebaseProperties);
       persistPropertiesBackup(firebaseProperties);
+      setPropertiesLoadError(null);
 
       if (!imageMigrationDone.current && firebaseProperties.length > 0) {
         imageMigrationDone.current = true;
@@ -63,8 +111,12 @@ export const usePropertyState = (): PropertyStateApi => {
       }
     };
 
+    setIsLoadingProperties(true);
+
     const unsubscribe = propertyUseCases.subscribe(
       async (firebaseProperties) => {
+        setIsLoadingProperties(false);
+
         if (firebaseProperties.length > 0) {
           await applyFirebaseProperties(firebaseProperties);
           return;
@@ -76,29 +128,19 @@ export const usePropertyState = (): PropertyStateApi => {
           await maybeSeedDevSamples();
         } else {
           setProperties([]);
+          setPropertiesLoadError(
+            'No hay propiedades en Firebase para este proyecto. Confirma VITE_FIREBASE_PROJECT_ID en Vercel.'
+          );
         }
       },
-      (error) => {
-        const isPermissionError =
-          (error as { code?: string }).code === 'permission-denied' ||
-          error.message.toLowerCase().includes('permission');
-        if (!isPermissionError) {
-          console.error('Error en suscripción de propiedades (Firebase):', error);
-        }
-        setProperties([]);
+      async (error) => {
+        setIsLoadingProperties(false);
+        await recoverFromLoadFailure(error);
       }
     );
 
     return () => unsubscribe();
   }, []);
-
-  const persistPropertiesBackup = (next: Property[]) => {
-    try {
-      localStorage.setItem('inverland_properties', JSON.stringify(next.map(sanitizePropertyImages)));
-    } catch (error) {
-      console.error('Failed to save properties to localStorage:', error);
-    }
-  };
 
   const persistPropertyToFirebase = async (property: Property) => {
     await propertyUseCases.update(sanitizePropertyImages(property));
@@ -223,6 +265,8 @@ export const usePropertyState = (): PropertyStateApi => {
 
   return {
     properties,
+    isLoadingProperties,
+    propertiesLoadError,
     addProperty,
     updateProperty,
     deleteProperty,

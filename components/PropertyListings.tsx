@@ -15,6 +15,8 @@ interface PropertyListingsProps {
     filters: Partial<PropertyFilters>;
     setFilters: React.Dispatch<React.SetStateAction<Partial<PropertyFilters>>>;
     onViewProperty: (property: Property) => void;
+    isLoadingProperties?: boolean;
+    propertiesLoadError?: string | null;
 }
 
 interface PropertyCardProps {
@@ -101,7 +103,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewProperty, o
     );
 };
 
-const PropertyListings: React.FC<PropertyListingsProps> = ({ properties, filters, setFilters, onViewProperty }) => {
+const PropertyListings: React.FC<PropertyListingsProps> = ({
+    properties,
+    filters,
+    setFilters,
+    onViewProperty,
+    isLoadingProperties = false,
+    propertiesLoadError = null,
+}) => {
     const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
     const [currentPage, setCurrentPage] = useState(1);
     const propertiesPerPage = 9;
@@ -289,9 +298,19 @@ const PropertyListings: React.FC<PropertyListingsProps> = ({ properties, filters
                             </div>
                         </div>
 
+                        {propertiesLoadError && (
+                            <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                {propertiesLoadError}
+                            </div>
+                        )}
+
                         {viewMode === 'grid' ? (
                             <>
-                                {paginatedProperties.length > 0 ? (
+                                {isLoadingProperties ? (
+                                    <div className="text-center py-16 bg-white rounded-lg shadow-md">
+                                        <p className="text-gray-600">Cargando propiedades...</p>
+                                    </div>
+                                ) : paginatedProperties.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
                                         {paginatedProperties.map(prop => <PropertyCard 
                                             key={prop.id} 
@@ -304,7 +323,11 @@ const PropertyListings: React.FC<PropertyListingsProps> = ({ properties, filters
                                 ) : (
                                     <div className="text-center py-16 bg-white rounded-lg shadow-md">
                                         <h3 className="text-2xl font-semibold text-gray-700">No se encontraron propiedades</h3>
-                                        <p className="text-gray-500 mt-2">Intenta ajustar tus filtros de búsqueda.</p>
+                                        <p className="text-gray-500 mt-2">
+                                            {properties.length === 0
+                                                ? 'El catálogo no está disponible. Revisa Firebase (reglas y variables en Vercel).'
+                                                : 'Intenta ajustar tus filtros de búsqueda.'}
+                                        </p>
                                     </div>
                                 )}
                                 {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
