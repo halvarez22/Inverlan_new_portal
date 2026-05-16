@@ -31,9 +31,42 @@
 - **SyncStatus.tsx**: Indicador visual de estado de conexión
 - **useConnectionStatus.ts**: Hook para manejar estado de conexión
 
-## 🚀 Pasos para Desplegar
+## 🚀 Pasos para Desplegar en Producción (inverland.mx)
 
-### 1. **Commit y Push a GitHub**
+Para que la aplicación funcione en el dominio privado, sigue estos pasos:
+
+### 1. **Configuración en Vercel**
+1. Entra a tu dashboard de Vercel y selecciona el proyecto.
+2. Ve a **Settings** > **Domains**.
+3. Agrega `inverland.mx` y `www.inverland.mx`.
+4. Vercel detectará que necesitas configurar los DNS.
+
+### 2. **Configuración de DNS (GoDaddy u otro registrador)**
+Debes actualizar los registros DNS que proporcionaste con estos nuevos valores:
+
+| Tipo | Nombre | Valor | Acción |
+| :--- | :--- | :--- | :--- |
+| **A** | `@` | `76.76.21.21` | Cambiar el actual `158.23.105.1` |
+| **CNAME** | `www` | `cname.vercel-dns.com` | Cambiar el actual que apunta a Azure |
+| **CNAME** | `inverland.mx` | - | **ELIMINAR** (el registro A `@` es suficiente) |
+
+*Nota: También se recomienda eliminar los registros `txt` con nombre `asuid` y `asuid.www` ya que son específicos de Azure y no se necesitan para Vercel.*
+
+### 3. **Configuración en Firebase (CRÍTICO para Auth)**
+Para que el inicio de sesión funcione en el nuevo dominio:
+1. Ve a [Firebase Console](https://console.firebase.google.com/).
+2. Selecciona tu proyecto.
+3. Ve a **Authentication** > **Settings** > **Authorized Domains**.
+4. Haz clic en **Add Domain** y agrega:
+   - `inverland.mx`
+   - `www.inverland.mx`
+
+### 4. **Verificar Variables de Entorno**
+Asegúrate de que en Vercel (**Settings** > **Environment Variables**) estén configuradas todas las variables necesarias de producción, especialmente las de Firebase y las API Keys de Gemini/Groq.
+
+---
+
+## 🚀 Pasos para Actualizaciones Continuas (CI/CD)
 ```bash
 git add .
 git commit -m "🚀 CRITICAL FIX: Garantizar persistencia de datos en Firebase

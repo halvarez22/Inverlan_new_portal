@@ -28,6 +28,15 @@ export const propertyUseCases = {
     const properties = await propertyRepository.getAll();
     return properties.map(sanitizePropertyImages);
   },
+  subscribe(
+    onData: (properties: Property[]) => void,
+    onError?: (error: Error) => void
+  ): () => void {
+    return propertyRepository.subscribe(
+      (properties) => onData(properties.map(sanitizePropertyImages)),
+      onError
+    );
+  },
   async add(property: Omit<Property, 'id'>): Promise<Property> {
     const id = await propertyRepository.add(property);
     return sanitizePropertyImages({ ...property, id });

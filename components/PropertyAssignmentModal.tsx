@@ -27,9 +27,13 @@ const PropertyAssignmentModal: React.FC<PropertyAssignmentModalProps> = ({ agent
         );
     };
 
-    const handleSave = () => {
-        assignPropertiesToAgent(agent.id, selectedPropertyIds);
-        onClose();
+    const handleSave = async () => {
+        try {
+            await assignPropertiesToAgent(agent.id, selectedPropertyIds);
+            onClose();
+        } catch {
+            alert('No se pudo guardar la asignación en Firebase. Revisa permisos y conexión.');
+        }
     };
     
     const formatPrice = (price: number) => {

@@ -7,9 +7,9 @@ interface PropertyContextType {
     addProperty: (property: Omit<Property, 'id'>) => Promise<void>;
     updateProperty: (property: Property) => Promise<void>;
     deleteProperty: (propertyId: string) => Promise<void>;
-    assignPropertiesToAgent: (agentId: string, propertyIds: string[]) => void;
-    addActivityToProperty: (propertyId: string, activityData: Omit<ActivityLog, 'id' | 'timestamp'>) => void;
-    assignClientToProperty: (propertyId: string, clientId: string | null) => void;
+    assignPropertiesToAgent: (agentId: string, propertyIds: string[]) => Promise<void>;
+    addActivityToProperty: (propertyId: string, activityData: Omit<ActivityLog, 'id' | 'timestamp'>) => Promise<void>;
+    assignClientToProperty: (propertyId: string, clientId: string | null) => Promise<void>;
 }
 
 const PropertyContext = createContext<PropertyContextType | undefined>(undefined);

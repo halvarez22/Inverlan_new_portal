@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Property, ActivityLog } from '../../types';
 import { SAMPLE_PROPERTIES } from '../../constants';
 import { propertyUseCases, migrateInvalidPropertyImages, sanitizePropertyImages } from './propertyUseCases';
@@ -10,13 +10,15 @@ export interface PropertyStateApi {
   addProperty: (property: Omit<Property, 'id'>) => Promise<void>;
   updateProperty: (property: Property) => Promise<void>;
   deleteProperty: (propertyId: string) => Promise<void>;
-  assignPropertiesToAgent: (agentId: string, propertyIds: string[]) => void;
-  addActivityToProperty: (propertyId: string, activityData: Omit<ActivityLog, 'id' | 'timestamp'>) => void;
-  assignClientToProperty: (propertyId: string, clientId: string | null) => void;
+  assignPropertiesToAgent: (agentId: string, propertyIds: string[]) => Promise<void>;
+  addActivityToProperty: (propertyId: string, activityData: Omit<ActivityLog, 'id' | 'timestamp'>) => Promise<void>;
+  assignClientToProperty: (propertyId: string, clientId: string | null) => Promise<void>;
 }
 
 export const usePropertyState = (): PropertyStateApi => {
   const [properties, setProperties] = useState<Property[]>([]);
+  const imageMigrationDone = useRef(false);
+  const devSampleSeedAttempted = useRef(false);
 
   useEffect(() => {
     domainBridge.registerPropertyDomain({
@@ -26,168 +28,197 @@ export const usePropertyState = (): PropertyStateApi => {
   }, [properties]);
 
   useEffect(() => {
-    const loadProperties = async () => {
-      try {
-        const firebaseProperties = await propertyUseCases.getAll();
-        if (firebaseProperties.length > 0) {
-          setProperties(firebaseProperties);
-          try {
-            await migrateInvalidPropertyImages(firebaseProperties);
-          } catch (e) {
-            console.warn('No se pudo migrar imágenes inválidas:', e);
-          }
-        } else {
-          const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const applyFirebaseProperties = async (firebaseProperties: Property[]) => {
+      setProperties(firebaseProperties);
+      persistPropertiesBackup(firebaseProperties);
 
-          if (isDevelopment) {
-            setProperties(SAMPLE_PROPERTIES.map(sanitizePropertyImages));
-            try {
-              // Using DomainBridge instead of direct imports
-              const firebaseClients = await domainBridge.clientsDomain.getAllClients();
-              const firebaseCampaigns = await domainBridge.campaignsDomain.getAllCampaigns();
-
-              if (firebaseClients.length === 0 && firebaseCampaigns.length === 0) {
-                for (const property of SAMPLE_PROPERTIES) {
-                  await propertyUseCases.add(property);
-                }
-              }
-            } catch (migrationError) {
-              console.warn('Failed to migrate sample properties to Firebase:', migrationError);
-            }
-          } else {
-            setProperties([]);
-          }
-        }
-      } catch (error: any) {
-        const isPermissionError = error?.code === 'permission-denied' || 
-                                 (error instanceof Error && error.message.toLowerCase().includes('permission'));
-        if (!isPermissionError) {
-          console.error('Failed to load properties from Firebase:', error);
-        }
+      if (!imageMigrationDone.current && firebaseProperties.length > 0) {
+        imageMigrationDone.current = true;
         try {
-          const storedProperties = localStorage.getItem('inverland_properties');
-          if (storedProperties) {
-            const parsed: Property[] = JSON.parse(storedProperties);
-            setProperties(parsed.map(sanitizePropertyImages));
-          } else {
-            setProperties(SAMPLE_PROPERTIES.map(sanitizePropertyImages));
-          }
-        } catch (localError) {
-          console.error('Failed to access localStorage for properties:', localError);
-          setProperties(SAMPLE_PROPERTIES.map(sanitizePropertyImages));
+          await migrateInvalidPropertyImages(firebaseProperties);
+        } catch (e) {
+          console.warn('No se pudo migrar imágenes inválidas:', e);
         }
       }
     };
 
-    loadProperties();
+    const maybeSeedDevSamples = async () => {
+      const isDevelopment =
+        window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (!isDevelopment || devSampleSeedAttempted.current) return;
+      devSampleSeedAttempted.current = true;
+
+      setProperties(SAMPLE_PROPERTIES.map(sanitizePropertyImages));
+      try {
+        const firebaseClients = await domainBridge.clientsDomain.getAllClients();
+        const firebaseCampaigns = await domainBridge.campaignsDomain.getAllCampaigns();
+
+        if (firebaseClients.length === 0 && firebaseCampaigns.length === 0) {
+          for (const property of SAMPLE_PROPERTIES) {
+            await propertyUseCases.add(property);
+          }
+        }
+      } catch (migrationError) {
+        console.warn('Failed to migrate sample properties to Firebase:', migrationError);
+      }
+    };
+
+    const unsubscribe = propertyUseCases.subscribe(
+      async (firebaseProperties) => {
+        if (firebaseProperties.length > 0) {
+          await applyFirebaseProperties(firebaseProperties);
+          return;
+        }
+
+        const isDevelopment =
+          window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isDevelopment) {
+          await maybeSeedDevSamples();
+        } else {
+          setProperties([]);
+        }
+      },
+      (error) => {
+        const isPermissionError =
+          (error as { code?: string }).code === 'permission-denied' ||
+          error.message.toLowerCase().includes('permission');
+        if (!isPermissionError) {
+          console.error('Error en suscripción de propiedades (Firebase):', error);
+        }
+        setProperties([]);
+      }
+    );
+
+    return () => unsubscribe();
   }, []);
 
-  const saveProperties = (newProperties: Property[]) => {
+  const persistPropertiesBackup = (next: Property[]) => {
     try {
-      localStorage.setItem('inverland_properties', JSON.stringify(newProperties));
+      localStorage.setItem('inverland_properties', JSON.stringify(next.map(sanitizePropertyImages)));
     } catch (error) {
       console.error('Failed to save properties to localStorage:', error);
     }
-    setProperties(newProperties);
+  };
+
+  const persistPropertyToFirebase = async (property: Property) => {
+    await propertyUseCases.update(sanitizePropertyImages(property));
   };
 
   const addProperty = async (property: Omit<Property, 'id'>) => {
     try {
       const newProperty = await propertyUseCases.add(property);
-      setProperties(prev => [newProperty, ...prev]);
-
-      try {
-        const updatedProperties = [newProperty, ...properties.map(sanitizePropertyImages)];
-        localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
-      } catch (localError) {
-        console.warn('Failed to save to localStorage backup:', localError);
-      }
+      setProperties(prev => {
+        const next = [newProperty, ...prev];
+        persistPropertiesBackup(next);
+        return next;
+      });
       loggingService.logSecurity('PROPERTY_ADD_SUCCESS', true, undefined, undefined, `Added property: ${newProperty.id}`);
     } catch (error) {
       loggingService.logSecurity('PROPERTY_ADD_FAILURE', false, undefined, undefined, `Failed to add property | ${String(error)}`);
       console.error('Failed to add property to Firebase:', error);
-      const newProperty: Property = { ...property, id: `prop-${Date.now()}` };
-      const updatedProperties = [...properties, newProperty];
-      setProperties(updatedProperties);
-      localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+      throw error;
     }
   };
 
   const updateProperty = async (updatedProperty: Property) => {
     try {
       await propertyUseCases.update(updatedProperty);
-      setProperties(prev => prev.map(prop => prop.id === updatedProperty.id ? updatedProperty : prop));
-
-      try {
-        const updatedProperties = properties.map(prop => prop.id === updatedProperty.id ? updatedProperty : prop);
-        localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
-      } catch (localError) {
-        console.warn('Failed to update localStorage backup:', localError);
-      }
+      setProperties(prev => {
+        const next = prev.map(prop => (prop.id === updatedProperty.id ? updatedProperty : prop));
+        persistPropertiesBackup(next);
+        return next;
+      });
       loggingService.logSecurity('PROPERTY_UPDATE_SUCCESS', true, undefined, undefined, `Updated property: ${updatedProperty.id}`);
     } catch (error) {
       loggingService.logSecurity('PROPERTY_UPDATE_FAILURE', false, undefined, undefined, `Failed to update property: ${updatedProperty.id} | ${String(error)}`);
       console.error('Failed to update property in Firebase:', error);
-      const updatedProperties = properties.map(prop => prop.id === updatedProperty.id ? sanitizePropertyImages(updatedProperty) : sanitizePropertyImages(prop));
-      setProperties(updatedProperties);
-      localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+      throw error;
     }
   };
 
   const deleteProperty = async (propertyId: string) => {
     try {
       await propertyUseCases.remove(propertyId);
-      setProperties(prev => prev.filter(prop => prop.id !== propertyId));
-
-      try {
-        const updatedProperties = properties.filter(prop => prop.id !== propertyId);
-        localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
-      } catch (localError) {
-        console.warn('Failed to update localStorage backup:', localError);
-      }
+      setProperties(prev => {
+        const next = prev.filter(prop => prop.id !== propertyId);
+        persistPropertiesBackup(next);
+        return next;
+      });
       loggingService.logSecurity('PROPERTY_DELETE_SUCCESS', true, undefined, undefined, `Deleted property: ${propertyId}`);
     } catch (error) {
       loggingService.logSecurity('PROPERTY_DELETE_FAILURE', false, undefined, undefined, `Failed to delete property: ${propertyId} | ${String(error)}`);
       console.error('Failed to delete property from Firebase:', error);
-      const updatedProperties = properties.filter(prop => prop.id !== propertyId);
-      setProperties(updatedProperties);
-      localStorage.setItem('inverland_properties', JSON.stringify(updatedProperties));
+      throw error;
     }
   };
 
-  const assignPropertiesToAgent = (agentId: string, propertyIds: string[]) => {
+  const assignPropertiesToAgent = async (agentId: string, propertyIds: string[]) => {
     const updatedProperties = properties.map(prop => {
       if (propertyIds.includes(prop.id)) {
-        return { ...prop, agentId: agentId };
+        return { ...prop, agentId };
       }
       if (prop.agentId === agentId && !propertyIds.includes(prop.id)) {
         return { ...prop, agentId: null };
       }
       return prop;
     });
-    saveProperties(updatedProperties);
+
+    const changed = updatedProperties.filter(next => {
+      const prev = properties.find(p => p.id === next.id);
+      return prev != null && prev.agentId !== next.agentId;
+    });
+
+    try {
+      await Promise.all(changed.map(persistPropertyToFirebase));
+      setProperties(updatedProperties);
+      persistPropertiesBackup(updatedProperties);
+    } catch (error) {
+      console.error('Failed to assign properties to agent in Firebase:', error);
+      throw error;
+    }
   };
 
-  const addActivityToProperty = (propertyId: string, activityData: Omit<ActivityLog, 'id' | 'timestamp'>) => {
+  const addActivityToProperty = async (propertyId: string, activityData: Omit<ActivityLog, 'id' | 'timestamp'>) => {
     const newActivity: ActivityLog = {
       ...activityData,
       id: `activity-${Date.now()}`,
       timestamp: new Date().toISOString(),
     };
 
-    const updatedProperties = properties.map(p => {
-      if (p.id === propertyId) {
-        const updatedLog = p.activityLog ? [...p.activityLog, newActivity] : [newActivity];
-        return { ...p, activityLog: updatedLog };
-      }
-      return p;
-    });
-    saveProperties(updatedProperties);
+    const target = properties.find(p => p.id === propertyId);
+    if (!target) return;
+
+    const updatedProperty: Property = {
+      ...target,
+      activityLog: target.activityLog ? [...target.activityLog, newActivity] : [newActivity],
+    };
+
+    try {
+      await persistPropertyToFirebase(updatedProperty);
+      const updatedProperties = properties.map(p => (p.id === propertyId ? updatedProperty : p));
+      setProperties(updatedProperties);
+      persistPropertiesBackup(updatedProperties);
+    } catch (error) {
+      console.error('Failed to save property activity in Firebase:', error);
+      throw error;
+    }
   };
 
-  const assignClientToProperty = (propertyId: string, clientId: string | null) => {
-    const updatedProperties = properties.map(p => p.id === propertyId ? { ...p, clientId: clientId } : p);
-    saveProperties(updatedProperties);
+  const assignClientToProperty = async (propertyId: string, clientId: string | null) => {
+    const target = properties.find(p => p.id === propertyId);
+    if (!target) return;
+
+    const updatedProperty: Property = { ...target, clientId };
+
+    try {
+      await persistPropertyToFirebase(updatedProperty);
+      const updatedProperties = properties.map(p => (p.id === propertyId ? updatedProperty : p));
+      setProperties(updatedProperties);
+      persistPropertiesBackup(updatedProperties);
+    } catch (error) {
+      console.error('Failed to assign client to property in Firebase:', error);
+      throw error;
+    }
   };
 
   return {

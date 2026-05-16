@@ -25,22 +25,30 @@ const AgentPropertyDetailPage: React.FC<AgentPropertyDetailPageProps> = ({ prope
 
     const assignedClient = clients.find(c => c.id === property.clientId);
 
-    const handlePipelineStageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const handlePipelineStageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newStage = e.target.value as Property['pipelineStage'];
-        updateProperty({ ...property, pipelineStage: newStage });
+        try {
+            await updateProperty({ ...property, pipelineStage: newStage });
+        } catch {
+            alert('No se pudo actualizar el estado del pipeline en Firebase.');
+        }
     };
 
-    const handleSubmitActivity = (e: React.FormEvent) => {
+    const handleSubmitActivity = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newActivity.trim() || !currentUser) return;
         
-        addActivityToProperty(property.id, {
-            activity: newActivity,
-            details: newActivityDetails,
-            agentId: currentUser.id,
-        });
-        setNewActivity('');
-        setNewActivityDetails('');
+        try {
+            await addActivityToProperty(property.id, {
+                activity: newActivity,
+                details: newActivityDetails,
+                agentId: currentUser.id,
+            });
+            setNewActivity('');
+            setNewActivityDetails('');
+        } catch {
+            alert('No se pudo registrar la actividad en Firebase.');
+        }
     };
 
     const sortedActivityLog = property.activityLog ? [...property.activityLog].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) : [];

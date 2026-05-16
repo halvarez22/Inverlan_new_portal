@@ -291,7 +291,7 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
                 mainPhotoIndex: mainPhotoIndex,
             };
             
-            updateProperty(updatedProperty);
+            await updateProperty(updatedProperty);
             alert('Propiedad actualizada exitosamente');
             setIsEditing(false);
             setSelectedProperty(null);
@@ -299,7 +299,11 @@ const EditPropertyPage: React.FC<EditPropertyPageProps> = ({ onBack }) => {
 
         } catch (error) {
             console.error("Error updating property:", error);
-            alert("Hubo un error al actualizar la propiedad. Por favor, inténtelo de nuevo.");
+            const message =
+                error instanceof Error && error.message.includes('longer than')
+                    ? 'Las imágenes ocupan demasiado espacio para Firestore. Reduce el número de fotos.'
+                    : 'No se pudo actualizar la propiedad en Firebase. Revisa la conexión y los permisos.';
+            alert(message);
         } finally {
             setIsLoading(false);
         }

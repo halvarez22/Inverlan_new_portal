@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useProperties } from './PropertyContext';
+import { useAuth } from './AuthContext';
 import { Property } from '../types';
 import { PROPERTY_TYPES, AMENITIES_LIST } from '../constants';
 import { generatePropertyDescription } from '../services/geminiService';
@@ -20,6 +21,7 @@ interface AddPropertyProps {
 
 const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
     const { addProperty } = useProperties();
+    const { currentUser } = useAuth();
     
     const [formData, setFormData] = useState<Omit<Property, 'id' | 'images' | 'videos' | 'location'> & { latitude?: string | number; longitude?: string | number }>({
         title: '',
@@ -300,16 +302,24 @@ const AddProperty: React.FC<AddPropertyProps> = ({ onPropertyAdded }) => {
                 images,
                 videos: videoUrls, // URLs de YouTube
                 video360: video360Urls, // URLs del recorrido 360
-                mainPhotoIndex: mainPhotoIndex
+                mainPhotoIndex: mainPhotoIndex,
+                agentId:
+                    currentUser?.role === 'agent' || currentUser?.role === 'user'
+                        ? currentUser.id
+                        : null,
             };
             
-            addProperty(newProperty);
+            await addProperty(newProperty);
             resetMedia();
             onPropertyAdded();
 
         } catch (error) {
             console.error("Error creating property:", error);
-            alert("Hubo un error al crear la propiedad. Por favor, inténtelo de nuevo.");
+            const message =
+                error instanceof Error && error.message.includes('longer than')
+                    ? 'Las imágenes ocupan demasiado espacio para Firestore. Prueba con menos fotos o fotos más pequeñas.'
+                    : 'No se pudo guardar la propiedad en Firebase. Revisa la conexión, permisos o el tamaño de las imágenes.';
+            alert(message);
         } finally {
             setIsLoading(false);
         }

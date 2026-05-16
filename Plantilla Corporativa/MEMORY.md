@@ -125,11 +125,17 @@
 - Impacto: Experiencia coherente en todos los idiomas soportados; permite la generaciÃ³n de material de marketing exportable para clientes internacionales.
 - Fecha: 2026-04-15
 
-### [2026-04-30] Refactorización de Edición de Propiedades y Paridad de Formulario
-- Contexto: El cliente reportó que muchos campos presentes en el formulario de alta (AddProperty) no eran editables en la página de edición, debido a una desincronización técnica entre ambos formularios.
-- Decisión: 
-    - Se refactorizó completamente EditPropertyPage.tsx para integrar los componentes modulares compartidos (PropertyLocationSection, PropertyAmenitiesSection, PropertyPoliciesSection).
-    - Se habilitaron campos críticos que faltaban: Número Exterior/Interior, Esquina con, CP, Amenidades por categoría, Políticas de mascotas/fumar y selección de Tipo de Operación (Venta/Renta/Renta temporal).
-    - Se incluyó la funcionalidad de " Generar con IA\ para descripciones en el modo edición.
-- Impacto: Se resolvió la limitación operativa de los agentes para actualizar fichas completas; se eliminó la deuda técnica de duplicidad de lógica de formularios y se aseguró una experiencia de usuario consistente en todo el ciclo de vida de la propiedad.
+### [2026-04-30] Refactorizaciï¿½n de Ediciï¿½n de Propiedades y Paridad de Formulario
+- Contexto: El cliente reportï¿½ que muchos campos presentes en el formulario de alta (AddProperty) no eran editables en la pï¿½gina de ediciï¿½n, debido a una desincronizaciï¿½n tï¿½cnica entre ambos formularios.
+- Decisiï¿½n: 
+    - Se refactorizï¿½ completamente EditPropertyPage.tsx para integrar los componentes modulares compartidos (PropertyLocationSection, PropertyAmenitiesSection, PropertyPoliciesSection).
+    - Se habilitaron campos crï¿½ticos que faltaban: Nï¿½mero Exterior/Interior, Esquina con, CP, Amenidades por categorï¿½a, Polï¿½ticas de mascotas/fumar y selecciï¿½n de Tipo de Operaciï¿½n (Venta/Renta/Renta temporal).
+    - Se incluyï¿½ la funcionalidad de " Generar con IA\ para descripciones en el modo ediciï¿½n.
+- Impacto: Se resolviï¿½ la limitaciï¿½n operativa de los agentes para actualizar fichas completas; se eliminï¿½ la deuda tï¿½cnica de duplicidad de lï¿½gica de formularios y se asegurï¿½ una experiencia de usuario consistente en todo el ciclo de vida de la propiedad.
 - Fecha: 2026-04-30
+
+### [2026-05-16] SincronizaciÃ³n en tiempo real de propiedades (Firestore)
+- Contexto: Los cambios se veÃ­an en la consola de Firebase pero no en la app; la carga inicial usaba `orderBy(createdAt)` y, ante fallos de lectura, se mostraba un respaldo obsoleto de `localStorage`.
+- DecisiÃ³n: SuscripciÃ³n con `onSnapshot` sobre la colecciÃ³n `properties`, lectura sin `orderBy` en servidor (orden en cliente), eliminaciÃ³n del fallback silencioso a `localStorage` en errores y respaldo local solo tras datos confirmados de Firebase.
+- Impacto: La UI refleja altas, ediciones y borrados sin recargar la pÃ¡gina; se evita mostrar datos viejos cuando Firestore es la fuente de verdad.
+- Fecha: 2026-05-16

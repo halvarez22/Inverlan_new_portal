@@ -19,9 +19,13 @@ const ClientAssignmentModal: React.FC<ClientAssignmentModalProps> = ({ property,
         return clients.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [clients, searchTerm]);
 
-    const handleSave = () => {
-        assignClientToProperty(property.id, selectedClientId);
-        onClose();
+    const handleSave = async () => {
+        try {
+            await assignClientToProperty(property.id, selectedClientId);
+            onClose();
+        } catch {
+            alert('No se pudo asignar el cliente en Firebase. Revisa permisos y conexión.');
+        }
     };
 
     const handleUnlink = () => {
