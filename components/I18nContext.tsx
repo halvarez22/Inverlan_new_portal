@@ -186,6 +186,10 @@ export const translations: Translations = {
   'contact.map_title': { es: 'Encuéntranos', en: 'Find Us', zh: '找到我们' },
   'contact.cta_ready': { es: '¿Listo para dar el siguiente paso?', en: 'Ready to take the next step?', zh: '准备好迈出下一步了吗？' },
   'contact.cta_desc': { es: 'Nuestro equipo de expertos está aquí para ayudarte. Completa el formulario y nos pondremos en contacto contigo a la brevedad para asesorarte en tu próxima inversión.', en: 'Our team of experts is here to help you. Complete the form and we will contact you shortly to advise you on your next investment.', zh: '我们的专家团队随时为您提供帮助。填写表格，我们将很快与您联系，为您的下一次投资提供建议。' },
+  'contact.our_location': { es: 'Nuestra Ubicación', en: 'Our Location', zh: '我们的位置' },
+  'contact.visit_us': { es: 'Visítanos en nuestras oficinas en León, Guanajuato', en: 'Visit us at our offices in Leon, Guanajuato', zh: '欢迎访问我们在瓜纳华托州莱昂的办公室' },
+  'contact.ready_to_find': { es: '¿Listo para encontrar tu próxima propiedad?', en: 'Ready to find your next property?', zh: '准备好寻找您的下一处房产了吗？' },
+  'contact.team_here': { es: 'Nuestro equipo de expertos está aquí para ayudarte en cada paso del proceso.', en: 'Our team of experts is here to help you every step of the way.', zh: '我们的专家团队在此过程中的每一步为您提供帮助。' },
   
   // Servicios Page
   'services.title': { es: 'Nuestros Servicios', en: 'Our Services', zh: '我们的服务' },

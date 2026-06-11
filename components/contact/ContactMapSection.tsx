@@ -1,14 +1,17 @@
 import React from 'react';
+import { useI18n } from '../I18nContext';
 
-const ContactMapSection: React.FC = () => (
+const ContactMapSection: React.FC = () => {
+    const { t } = useI18n();
+    return (
     <section className="py-16 bg-white">
         <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-12">
                 <h2 className="text-3xl sm:text-4xl font-bold text-inverland-dark mb-4">
-                    Nuestra Ubicación
+                    {t('contact.our_location')}
                 </h2>
                 <p className="text-lg text-gray-600">
-                    Visítanos en nuestras oficinas en León, Guanajuato
+                    {t('contact.visit_us')}
                 </p>
             </div>
 
@@ -28,6 +31,7 @@ const ContactMapSection: React.FC = () => (
             </div>
         </div>
     </section>
-);
+    );
+};
 
 export default ContactMapSection;
