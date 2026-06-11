@@ -43,7 +43,7 @@ const ContactInfoColumn: React.FC = () => {
                         <div>
                             <h3 className="text-xl font-bold text-inverland-dark mb-2">{t('contact.phone')}</h3>
                             <a href="tel:+524779155107" className="text-gray-700 hover:text-inverland-green transition-colors duration-300">
-                                52.477.667.0010
+                                52.477.915.5107
                             </a>
                         </div>
                     </div>
