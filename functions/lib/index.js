@@ -33,9 +33,11 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.createUser = void 0;
+exports.hunterAgent = exports.whatsappWebhook = exports.deleteUser = exports.updateUser = exports.createUser = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
+const orchestrator_1 = require("./agent/orchestrator");
+const hunter_1 = require("./agent/hunter");
 admin.initializeApp();
 const db = admin.firestore();
 // Solo admins pueden llamar estas funciones
@@ -123,5 +125,61 @@ exports.deleteUser = functions.https.onCall(async (data, context) => {
         success: true,
         message: 'User deleted successfully',
     };
+});
+// ==========================================
+// AGENTE INVERLAN (MICROSERVICIO IA)
+// ==========================================
+exports.whatsappWebhook = functions.https.onRequest(async (req, res) => {
+    // GET: Verificación de Meta
+    if (req.method === 'GET') {
+        const verify_token = process.env.WHATSAPP_VERIFY_TOKEN;
+        const mode = req.query["hub.mode"];
+        const token = req.query["hub.verify_token"];
+        const challenge = req.query["hub.challenge"];
+        if (mode && token) {
+            if (mode === "subscribe" && token === verify_token) {
+                console.log("✅ WHATSAPP WEBHOOK VERIFIED");
+                res.status(200).send(challenge);
+                return;
+            }
+            else {
+                res.sendStatus(403);
+                return;
+            }
+        }
+        res.status(400).send("Faltan parámetros de validación");
+        return;
+    }
+    // POST: Recepción de mensajes
+    if (req.method === 'POST') {
+        try {
+            const body = req.body;
+            if (body.object) {
+                if (body.entry && body.entry[0].changes && body.entry[0].changes[0].value.messages && body.entry[0].changes[0].value.messages[0]) {
+                    const msg = body.entry[0].changes[0].value.messages[0];
+                    const from = msg.from;
+                    const msg_body = msg.text?.body || "";
+                    console.log(`[WhatsApp] Recibido de: ${from} | Mensaje: ${msg_body}`);
+                    await (0, orchestrator_1.processAgentChat)(from, msg_body);
+                }
+                res.sendStatus(200);
+                return;
+            }
+            else {
+                res.sendStatus(404);
+                return;
+            }
+        }
+        catch (error) {
+            console.error("❌ Error procesando Webhook de WhatsApp:", error);
+            res.sendStatus(500);
+            return;
+        }
+    }
+    res.sendStatus(405);
+});
+// CRON del Agente Cazador (Corre todos los días a las 2 AM)
+exports.hunterAgent = functions.pubsub.schedule("0 2 * * *").timeZone("America/Mexico_City").onRun(async (context) => {
+    await (0, hunter_1.runHunterCycle)();
 });
 //# sourceMappingURL=index.js.map

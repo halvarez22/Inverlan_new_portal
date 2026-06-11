@@ -1,15 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
-import { config } from "../config/env.js";
-import { getChatHistory, saveMessageToHistory } from "./memory.js";
-
-// Inicialización segura del LLM
-const ai = new GoogleGenAI({ apiKey: config.geminiApiKey || "API_KEY_FALTANTE" });
+import { getChatHistory, saveMessageToHistory } from "./memory";
 
 /**
  * Bucle Principal de Orquestación del Agente Inverlan.
  * SRP: Recupera memoria, invoca el LLM y guarda la respuesta.
  */
 export async function processAgentChat(userId: string, incomingMessage: string): Promise<string> {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "API_KEY_FALTANTE" });
     // 1. Cargar Memoria a Largo Plazo desde Firestore
     const history = await getChatHistory(userId);
     
