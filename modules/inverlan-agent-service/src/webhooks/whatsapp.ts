@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { processAgentChat } from '../agent/orchestrator.js';
 
 export const whatsappRouter = Router();
 
@@ -44,7 +45,6 @@ whatsappRouter.post('/webhook', async (req: Request, res: Response) => {
 
                 console.log(`[WhatsApp] Recibido de: ${from} | Mensaje: ${msg_body}`);
                 
-                import { processAgentChat } from '../agent/orchestrator.js';
                 // El número de teléfono actúa como userId para la memoria
                 await processAgentChat(from, msg_body);
                 // Nota: Aquí se implementaría el dispatch (envío) de vuelta hacia Meta 

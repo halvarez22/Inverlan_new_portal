@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { whatsappRouter } from './webhooks/whatsapp.js';
+import { processAgentChat } from './agent/orchestrator.js';
 
 // Configuración segura de variables de entorno (ISO/IEC 27034)
 dotenv.config();
@@ -36,8 +37,6 @@ app.post('/api/chat', async (req: Request, res: Response) => {
     }
 
     try {
-        import { processAgentChat } from './agent/orchestrator.js';
-        
         console.log(`[Web Chat] Procesando mensaje de: ${userId}`);
         const aiResponse = await processAgentChat(userId, message);
         

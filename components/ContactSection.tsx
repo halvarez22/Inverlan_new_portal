@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import OfficeMap from './OfficeMap';
+import { useI18n } from './I18nContext';
 
 const ContactSection: React.FC = () => {
+    const { t } = useI18n();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -76,26 +78,26 @@ const ContactSection: React.FC = () => {
                         </div>
                     </div>
                     <div className="bg-gray-50 p-6 md:p-8 rounded-lg shadow-xl">
-                         <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre completo</label>
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">{t('contact.name')}</label>
                                 <input type="text" name="name" id="name" value={formData.name} onChange={handleInputChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-inverland-green focus:border-inverland-green bg-white text-gray-800" />
                             </div>
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">{t('contact.email')}</label>
                                 <input type="email" name="email" id="email" value={formData.email} onChange={handleInputChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-inverland-green focus:border-inverland-green bg-white text-gray-800" />
                             </div>
                             <div>
-                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Teléfono</label>
+                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">{t('contact.phone')}</label>
                                 <input type="tel" name="phone" id="phone" value={formData.phone} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-inverland-green focus:border-inverland-green bg-white text-gray-800" />
                             </div>
                             <div>
-                                <label htmlFor="message" className="block text-sm font-medium text-gray-700">Mensaje</label>
+                                <label htmlFor="message" className="block text-sm font-medium text-gray-700">{t('contact.message')}</label>
                                 <textarea name="message" id="message" value={formData.message} onChange={handleInputChange} required rows={4} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-inverland-green focus:border-inverland-green bg-white text-gray-800"></textarea>
                             </div>
                             <div>
                                 <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-inverland-green hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-inverland-green transition-transform transform hover:scale-105">
-                                    Enviar Mensaje
+                                    {t('contact.send')}
                                 </button>
                             </div>
                         </form>
