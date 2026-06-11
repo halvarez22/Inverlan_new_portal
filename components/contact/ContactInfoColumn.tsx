@@ -42,7 +42,7 @@ const ContactInfoColumn: React.FC = () => {
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-inverland-dark mb-2">{t('contact.phone')}</h3>
-                            <a href="tel:+524776670010" className="text-gray-700 hover:text-inverland-green transition-colors duration-300">
+                            <a href="tel:+524779155107" className="text-gray-700 hover:text-inverland-green transition-colors duration-300">
                                 52.477.667.0010
                             </a>
                         </div>
@@ -74,8 +74,8 @@ const ContactInfoColumn: React.FC = () => {
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-inverland-dark mb-2">{t('contact.whatsapp')}</h3>
-                            <a href="https://wa.me/524776670010" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-green-500 transition-colors duration-300">
-                                +52 477 667 0010
+                            <a href="https://wa.me/524779155107" target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-green-500 transition-colors duration-300">
+                                +52 477 915 5107
                             </a>
                         </div>
                     </div>

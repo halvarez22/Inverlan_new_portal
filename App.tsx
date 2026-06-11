@@ -382,7 +382,7 @@ function App() {
                 onOpenAppointmentModal={() => setAppointmentModalOpen(true)}
             />
             <main>{renderContent()}</main>
-            {!isAuthenticated && <WhatsAppButton phoneNumber="524776670010" />}
+            {!isAuthenticated && <WhatsAppButton phoneNumber="524779155107" />}
             {!isAuthenticated && (
                 <Suspense fallback={null}>
                     <Chatbot />

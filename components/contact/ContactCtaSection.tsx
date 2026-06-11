@@ -12,13 +12,13 @@ const ContactCtaSection: React.FC = () => (
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <a
-                        href="tel:+524776670010"
+                        href="tel:+524779155107"
                         className="bg-white text-inverland-green font-bold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors duration-300 transform hover:scale-105 shadow-lg"
                     >
                         Llamar Ahora
                     </a>
                     <a
-                        href="https://wa.me/524776670010"
+                        href="https://wa.me/524779155107"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="border-2 border-white text-white font-bold px-8 py-4 rounded-lg hover:bg-white hover:text-inverland-green transition-colors duration-300"
