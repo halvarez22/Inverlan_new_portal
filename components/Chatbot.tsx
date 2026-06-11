@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage } from '../types';
-import { sendMessageToGroq } from '../services/groqService';
 import { useI18n } from './I18nContext';
 
 const ChatIcon = () => (
@@ -65,14 +64,28 @@ const Chatbot: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const systemInstruction = `${t('chatbot.system_instruction')}
-Responde siempre en el idioma: ${language === 'es' ? 'Español' : language === 'zh' ? 'Chino (Simplificado)' : 'Inglés'}.`;
-            
-            const botResponseText = await sendMessageToGroq(inputValue, systemInstruction);
+            // Invocación segura al Microservicio Independiente del Agente
+            // La instrucción de idioma se puede mandar como contexto extra
+            const response = await fetch('http://localhost:3001/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: 'web-guest', // Idealmente usaríamos un ID de sesión o cliente logueado
+                    message: inputValue,
+                    language: language
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Fallo al conectar con el microservicio del agente.');
+            }
+
+            const data = await response.json();
+
             const botMessage: ChatMessage = {
                 id: `bot-${Date.now()}`,
                 sender: 'bot',
-                text: botResponseText
+                text: data.reply || 'Sin respuesta del agente.'
             };
             setMessages(prev => [...prev, botMessage]);
         } catch {

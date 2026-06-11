@@ -31,10 +31,10 @@ const Footer: React.FC = () => {
                         </ul>
                     </div>
                     <div>
-                        <h3 className="font-bold text-lg mb-4">Legal</h3>
-                        <ul className="space-y-2">
-                            <li><a href="#" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">Aviso de Privacidad</a></li>
-                            <li><a href="#" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">Términos y Condiciones</a></li>
+                        <h4 className="text-lg font-bold text-white mb-6 uppercase tracking-wider">{t('footer.legal')}</h4>
+                        <ul className="space-y-3">
+                            <li><a href="#" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">{t('footer.privacy')}</a></li>
+                            <li><a href="#" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">{t('footer.terms')}</a></li>
                         </ul>
                     </div>
                     <div>

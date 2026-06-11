@@ -39,9 +39,9 @@ const ContactSection: React.FC = () => {
         <section id="contact" className="bg-white py-16 md:py-24">
             <div className="container mx-auto px-4 sm:px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-                    <div>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-inverland-dark mb-4">¿Listo para dar el siguiente paso?</h2>
-                        <p className="text-lg text-gray-600 mb-6">Nuestro equipo de expertos está aquí para ayudarte. Completa el formulario y nos pondremos en contacto contigo a la brevedad para asesorarte en tu próxima inversión.</p>
+                    <div className="bg-white p-8 sm:p-12 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 transform -translate-y-2">
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-inverland-dark mb-4">{t('contact.cta_ready')}</h2>
+                        <p className="text-gray-600 mb-8 leading-relaxed text-lg">{t('contact.cta_desc')}</p>
                         <div className="space-y-4">
                             <div className="flex items-center">
                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-inverland-green mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>

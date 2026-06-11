@@ -59,6 +59,8 @@ export const translations: Translations = {
   'listings.filter_min': { es: 'Mín.', en: 'Min.', zh: '最小' },
   'listings.filter_clear': { es: 'Limpiar Filtros', en: 'Clear Filters', zh: '清除筛选' },
   'listings.found_count': { es: 'propiedades encontradas', en: 'properties found', zh: '找到的房产' },
+  'listings.view_grid': { es: 'Grid', en: 'Grid', zh: '网格' },
+  'listings.view_map': { es: 'Mapa', en: 'Map', zh: '地图' },
   
   // Property Detail
   'detail.back': { es: 'Volver al listado', en: 'Back to listings', zh: '返回列表' },
@@ -182,6 +184,8 @@ export const translations: Translations = {
   'contact.cta_btn': { es: 'Llamar Ahora', en: 'Call Now', zh: '立即致电' },
   'contact.whatsapp': { es: 'WhatsApp', en: 'WhatsApp', zh: 'WhatsApp' },
   'contact.map_title': { es: 'Encuéntranos', en: 'Find Us', zh: '找到我们' },
+  'contact.cta_ready': { es: '¿Listo para dar el siguiente paso?', en: 'Ready to take the next step?', zh: '准备好迈出下一步了吗？' },
+  'contact.cta_desc': { es: 'Nuestro equipo de expertos está aquí para ayudarte. Completa el formulario y nos pondremos en contacto contigo a la brevedad para asesorarte en tu próxima inversión.', en: 'Our team of experts is here to help you. Complete the form and we will contact you shortly to advise you on your next investment.', zh: '我们的专家团队随时为您提供帮助。填写表格，我们将很快与您联系，为您的下一次投资提供建议。' },
   
   // Servicios Page
   'services.title': { es: 'Nuestros Servicios', en: 'Our Services', zh: '我们的服务' },
@@ -220,6 +224,9 @@ export const translations: Translations = {
   'footer.rights': { es: '© 2026 Inverland Portal. Todos los derechos reservados.', en: '© 2026 Inverland Portal. All rights reserved.', zh: '© 2026 Inverland Portal. 版权所有。' },
   'footer.contact_info': { es: 'Información de Contacto', en: 'Contact Information', zh: '联系信息' },
   'footer.quick_links': { es: 'Enlaces Rápidos', en: 'Quick Links', zh: '快速链接' },
+  'footer.legal': { es: 'Legal', en: 'Legal', zh: 'Legal' },
+  'footer.privacy': { es: 'Aviso de Privacidad', en: 'Privacy Notice', zh: '隐私声明' },
+  'footer.terms': { es: 'Términos y Condiciones', en: 'Terms and Conditions', zh: '条款和条件' },
   
   // Property Types
   'type.Casa': { es: 'Casa', en: 'House', zh: '房子' },

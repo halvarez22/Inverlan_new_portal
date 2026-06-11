@@ -292,9 +292,9 @@ const PropertyListings: React.FC<PropertyListingsProps> = ({
                     <main className="lg:col-span-3">
                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                              <p className="text-gray-600 font-medium">{filteredProperties.length} {t('listings.found_count') || 'propiedades encontradas'}</p>
-                            <div className="flex items-center space-x-2 bg-gray-200 p-1 rounded-lg">
-                                <button onClick={() => setViewMode('grid')} className={`px-4 py-2 text-sm rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white text-inverland-dark shadow' : 'text-gray-600'}`}>Grid</button>
-                                <button onClick={() => setViewMode('map')} className={`px-4 py-2 text-sm rounded-md transition-colors ${viewMode === 'map' ? 'bg-white text-inverland-dark shadow' : 'text-gray-600'}`}>Mapa</button>
+                            <div className="flex bg-gray-100 p-1 rounded-lg">
+                                <button onClick={() => setViewMode('grid')} className={`px-4 py-2 text-sm rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white text-inverland-dark shadow' : 'text-gray-600'}`}>{t('listings.view_grid')}</button>
+                                <button onClick={() => setViewMode('map')} className={`px-4 py-2 text-sm rounded-md transition-colors ${viewMode === 'map' ? 'bg-white text-inverland-dark shadow' : 'text-gray-600'}`}>{t('listings.view_map')}</button>
                             </div>
                         </div>
 
