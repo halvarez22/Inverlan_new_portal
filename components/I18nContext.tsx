@@ -232,6 +232,19 @@ export const translations: Translations = {
   'footer.privacy': { es: 'Aviso de Privacidad', en: 'Privacy Notice', zh: '隐私声明' },
   'footer.terms': { es: 'Términos y Condiciones', en: 'Terms and Conditions', zh: '条款和条件' },
   
+  // New Legal / Privacy Translations
+  'legal.privacy_title': { es: 'Aviso de Privacidad', en: 'Privacy Notice', zh: '隐私声明' },
+  'legal.privacy_subtitle': { es: 'Última actualización: Junio de 2026', en: 'Last updated: June 2026', zh: '最后更新：2026年6月' },
+  'legal.contact_label': { es: 'Contacto para derechos ARCO', en: 'Contact for ARCO rights', zh: 'ARCO 权利联系人' },
+  'legal.cookie_message': { es: 'Utilizamos cookies para mejorar su experiencia y analizar el tráfico de nuestro sitio web.', en: 'We use cookies to improve your experience and analyze our website traffic.', zh: '我们使用 cookie 来改善您的体验并分析我们的网站流量。' },
+  'legal.cookie_link': { es: 'Ver Política de Privacidad', en: 'View Privacy Policy', zh: '查看隐私政策' },
+  'legal.cookie_accept': { es: 'Aceptar', en: 'Accept', zh: '接受' },
+  'contact.privacy_consent': { 
+    es: 'Al enviar este mensaje, aceptas nuestro Aviso de Privacidad y el tratamiento de tus datos personales.', 
+    en: 'By sending this message, you accept our Privacy Notice and the processing of your personal data.', 
+    zh: '发送此消息即表示您接受我们的隐私声明及对您个人数据的处理。' 
+  },
+  
   // Property Types
   'type.Casa': { es: 'Casa', en: 'House', zh: '房子' },
   'type.Departamento': { es: 'Departamento', en: 'Apartment', zh: '公寓' },

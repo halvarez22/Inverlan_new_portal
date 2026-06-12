@@ -17,6 +17,10 @@ import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import ScrollingBanner from './components/ScrollingBanner';
 import SyncStatus from './components/SyncStatus';
+import CookieBanner from './components/CookieBanner';
+import PrivacyPage from './components/PrivacyPage';
+import TermsPage from './components/TermsPage';
+import ArcoFormPage from './components/ArcoFormPage';
 
 const LoginPage = lazy(() => import('./components/LoginPage'));
 const UserPortal = lazy(() => import('./components/UserPortal'));
@@ -64,7 +68,10 @@ type View =
     | 'agentPropertyDetail'
     | 'about'
     | 'contact'
-    | 'servicios';
+    | 'servicios'
+    | 'privacy'
+    | 'terms'
+    | 'arco';
 
 function App() {
     const { isAuthenticated, currentUser, logout: authLogout } = useAuth();
@@ -138,11 +145,32 @@ function App() {
             setTimeout(() => {
                 propertyListingsRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
+        } else if (href === '#privacy') {
+            handleNavigate('privacy');
+        } else if (href === '#terms') {
+            handleNavigate('terms');
+        } else if (href === '#arco') {
+            handleNavigate('arco');
         } else {
             const element = document.querySelector(href);
             element?.scrollIntoView({ behavior: 'smooth' });
         }
     };
+
+    useEffect(() => {
+        const handleHashChange = () => {
+            if (window.location.hash === '#privacy') {
+                handleNavigate('privacy');
+            } else if (window.location.hash === '#terms') {
+                handleNavigate('terms');
+            } else if (window.location.hash === '#arco') {
+                handleNavigate('arco');
+            }
+        };
+        window.addEventListener('hashchange', handleHashChange);
+        handleHashChange(); // Check on mount
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
 
     const handleSearch = async (query: string) => {
         setIsSearching(true);
@@ -208,6 +236,24 @@ function App() {
                         </Suspense>
                     ) : (
                         homePage
+                    );
+                case 'privacy':
+                    return (
+                        <Suspense fallback={<PageLoadFallback />}>
+                            <PrivacyPage onBack={handleBackToList} />
+                        </Suspense>
+                    );
+                case 'terms':
+                    return (
+                        <Suspense fallback={<PageLoadFallback />}>
+                            <TermsPage onBack={handleBackToList} />
+                        </Suspense>
+                    );
+                case 'arco':
+                    return (
+                        <Suspense fallback={<PageLoadFallback />}>
+                            <ArcoFormPage onBack={handleBackToList} />
+                        </Suspense>
                     );
                 case 'about':
                     return (
@@ -350,6 +396,24 @@ function App() {
                         />
                     </Suspense>
                 );
+            case 'privacy':
+                return (
+                    <Suspense fallback={<PageLoadFallback />}>
+                        <PrivacyPage onBack={handleBackToList} />
+                    </Suspense>
+                );
+            case 'terms':
+                return (
+                    <Suspense fallback={<PageLoadFallback />}>
+                        <TermsPage onBack={handleBackToList} />
+                    </Suspense>
+                );
+            case 'arco':
+                return (
+                    <Suspense fallback={<PageLoadFallback />}>
+                        <ArcoFormPage onBack={handleBackToList} />
+                    </Suspense>
+                );
             case 'about':
                 return (
                     <Suspense fallback={<PageLoadFallback />}>
@@ -388,12 +452,13 @@ function App() {
                     <Chatbot />
                 </Suspense>
             )}
-            <Footer />
+            <Footer onNavClick={handleNavClick} />
             {isAppointmentModalOpen && (
                 <Suspense fallback={null}>
-                    <AppointmentModal onClose={() => setAppointmentModalOpen(false)} />
+                    <AppointmentModal isOpen={isAppointmentModalOpen} onClose={() => setAppointmentModalOpen(false)} />
                 </Suspense>
             )}
+            <CookieBanner onNavClick={handleNavClick} />
             <Suspense fallback={null}>
                 <DataMigration />
             </Suspense>

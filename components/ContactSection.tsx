@@ -99,6 +99,9 @@ const ContactSection: React.FC = () => {
                                 <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-bold text-white bg-inverland-green hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-inverland-green transition-transform transform hover:scale-105">
                                     {t('contact.send')}
                                 </button>
+                                <p className="mt-4 text-xs text-gray-500 text-center leading-tight">
+                                    {t('contact.privacy_consent')}
+                                </p>
                             </div>
                         </form>
                     </div>

@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import { getChatHistory, saveMessageToHistory } from "./memory";
 
 /**
@@ -6,7 +6,7 @@ import { getChatHistory, saveMessageToHistory } from "./memory";
  * SRP: Recupera memoria, invoca el LLM y guarda la respuesta.
  */
 export async function processAgentChat(userId: string, incomingMessage: string): Promise<string> {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "API_KEY_FALTANTE" });
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "API_KEY_FALTANTE" });
     // 1. Cargar Memoria a Largo Plazo desde Firestore
     const history = await getChatHistory(userId);
     
@@ -25,19 +25,24 @@ Usa un tono profesional, amable y empático. Nunca inventes precios o direccione
 Si el lead parece muy interesado y proporciona datos de contacto, notifica internamente que es un lead caliente.`;
 
     try {
-        const chat = ai.chats.create({
-            model: "gemini-2.5-flash",
-            config: {
-                systemInstruction,
-                // Nota: La conexión nativa con las herramientas MCP se inicializa aquí.
-                // En un entorno de producción avanzado, usaríamos un cliente MCP para inyectar tools dinámicamente.
-            }
-        });
+        const groqMessages = [
+            { role: "system" as const, content: systemInstruction },
+            // Mapear historial al formato de Groq (OpenAI style)
+            ...history.messages.map((m: any) => ({
+                role: (m.role === 'model' ? 'assistant' : 'user') as "user" | "assistant" | "system",
+                content: m.content
+            })),
+            { role: "user" as const, content: incomingMessage }
+        ];
 
         // 3. Invocación del LLM
-        // En una implementación real con historial, se pasarían los 'history.messages' a la sesión de chat.
-        const response = await chat.sendMessage({ message: incomingMessage });
-        const textResponse = response.text || "Disculpa, no logré procesar tu solicitud.";
+        const response = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: groqMessages,
+            temperature: 0.7
+        });
+
+        const textResponse = response.choices[0]?.message?.content || "Disculpa, no logré procesar tu solicitud.";
 
         // 4. Guardar respuesta del LLM en la memoria
         await saveMessageToHistory(userId, 'model', textResponse);

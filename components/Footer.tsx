@@ -10,7 +10,11 @@ const SocialIcon: React.FC<{ href: string, children: React.ReactNode }> = ({ hre
     </a>
 );
 
-const Footer: React.FC = () => {
+interface FooterProps {
+    onNavClick?: (href: string) => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
     const { t } = useI18n();
     return (
         <footer className="bg-gradient-to-br from-inverland-black to-inverland-blue text-inverland-off-white">
@@ -33,8 +37,34 @@ const Footer: React.FC = () => {
                     <div>
                         <h4 className="text-lg font-bold text-white mb-6 uppercase tracking-wider">{t('footer.legal')}</h4>
                         <ul className="space-y-3">
-                            <li><a href="#" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">{t('footer.privacy')}</a></li>
-                            <li><a href="#" className="text-inverland-light-blue hover:text-inverland-aqua transition-colors">{t('footer.terms')}</a></li>
+                            <li>
+                                <a 
+                                    href="#privacy" 
+                                    onClick={(e) => {
+                                        if (onNavClick) {
+                                            e.preventDefault();
+                                            onNavClick('#privacy');
+                                        }
+                                    }}
+                                    className="text-inverland-light-blue hover:text-inverland-aqua transition-colors"
+                                >
+                                    {t('footer.privacy')}
+                                </a>
+                            </li>
+                            <li>
+                                <a 
+                                    href="#terms" 
+                                    onClick={(e) => {
+                                        if (onNavClick) {
+                                            e.preventDefault();
+                                            onNavClick('#terms');
+                                        }
+                                    }}
+                                    className="text-inverland-light-blue hover:text-inverland-aqua transition-colors"
+                                >
+                                    {t('footer.terms')}
+                                </a>
+                            </li>
                         </ul>
                     </div>
                     <div>
