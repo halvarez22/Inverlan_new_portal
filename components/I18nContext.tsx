@@ -228,7 +228,7 @@ export const translations: Translations = {
   'footer.rights': { es: '© 2026 Inverland Portal. Todos los derechos reservados.', en: '© 2026 Inverland Portal. All rights reserved.', zh: '© 2026 Inverland Portal. 版权所有。' },
   'footer.contact_info': { es: 'Información de Contacto', en: 'Contact Information', zh: '联系信息' },
   'footer.quick_links': { es: 'Enlaces Rápidos', en: 'Quick Links', zh: '快速链接' },
-  'footer.legal': { es: 'Legal', en: 'Legal', zh: 'Legal' },
+  'footer.legal': { es: 'Legal', en: 'Legal', zh: '法律' },
   'footer.privacy': { es: 'Aviso de Privacidad', en: 'Privacy Notice', zh: '隐私声明' },
   'footer.terms': { es: 'Términos y Condiciones', en: 'Terms and Conditions', zh: '条款和条件' },
   
