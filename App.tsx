@@ -122,6 +122,13 @@ function App() {
         }, 100);
     };
 
+    const handleBackFromLegal = () => {
+        handleNavigate('home');
+        setTimeout(() => {
+            document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
+    };
+
     const handleLoginSuccess = () => {
         handleNavigate('userPortal');
     };
@@ -240,19 +247,19 @@ function App() {
                 case 'privacy':
                     return (
                         <Suspense fallback={<PageLoadFallback />}>
-                            <PrivacyPage onBack={handleBackToList} />
+                            <PrivacyPage onBack={handleBackFromLegal} />
                         </Suspense>
                     );
                 case 'terms':
                     return (
                         <Suspense fallback={<PageLoadFallback />}>
-                            <TermsPage onBack={handleBackToList} />
+                            <TermsPage onBack={handleBackFromLegal} />
                         </Suspense>
                     );
                 case 'arco':
                     return (
                         <Suspense fallback={<PageLoadFallback />}>
-                            <ArcoFormPage onBack={handleBackToList} />
+                            <ArcoFormPage onBack={handleBackFromLegal} />
                         </Suspense>
                     );
                 case 'about':
@@ -399,19 +406,19 @@ function App() {
             case 'privacy':
                 return (
                     <Suspense fallback={<PageLoadFallback />}>
-                        <PrivacyPage onBack={handleBackToList} />
+                        <PrivacyPage onBack={handleBackFromLegal} />
                     </Suspense>
                 );
             case 'terms':
                 return (
                     <Suspense fallback={<PageLoadFallback />}>
-                        <TermsPage onBack={handleBackToList} />
+                        <TermsPage onBack={handleBackFromLegal} />
                     </Suspense>
                 );
             case 'arco':
                 return (
                     <Suspense fallback={<PageLoadFallback />}>
-                        <ArcoFormPage onBack={handleBackToList} />
+                        <ArcoFormPage onBack={handleBackFromLegal} />
                     </Suspense>
                 );
             case 'about':
